@@ -1,0 +1,48 @@
+name: Import verified NightKeys baseline
+on:
+  push:
+    paths: ['.github/workflows/import-baseline.yml']
+permissions:
+  contents: write
+jobs:
+  import:
+    if: github.repository == 'jasonlok000/titan2-nightkeys'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import source only from the owner's previous build artifact
+        env:
+          SOURCE_URL: 'https://sdmntprcentralus.oaiusercontent.com/files/00000000-f484-81f5-9973-f24eae0cdfc9/raw?se=2026-10-19T21%3A42%3A44Z&sp=r&sv=2026-02-06&sr=b&scid=17149cc3-18e1-5166-a300-b8875edd8063&skoid=e9d2f8b1-028a-4cff-8eb1-d0e66fbefcca&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-19T21%3A33%3A07Z&ske=2026-10-20T21%3A33%3A07Z&sks=b&skv=2026-02-06&sig=FtFExjFalocyYlrOF%2BGAQfYi2ebSMF3zKKOW%2BDHaJMY%3D'
+        run: |
+          set -euo pipefail
+          test ! -d app
+          curl --fail --location --retry 2 "$SOURCE_URL" -o /tmp/baseline.zip
+          python3 - <<'PY'
+          import hashlib, io, pathlib, zipfile
+          with zipfile.ZipFile('/tmp/baseline.zip') as z:
+              source = z.read('NightKeys-0.9.6-rc7-source.zip')
+          assert hashlib.sha256(source).hexdigest() == '03ed73ce704fbd0339b70cbc7b8578f8519be076d8873843afd9a0c0e626c2c3'
+          with zipfile.ZipFile(io.BytesIO(source)) as z:
+              for item in z.infolist():
+                  p = pathlib.PurePosixPath(item.filename)
+                  assert p.parts[0] == 'NightKeys' and '..' not in p.parts
+                  if item.is_dir() or len(p.parts) < 2: continue
+                  relative = pathlib.Path(*p.parts[1:])
+                  if relative.parts[0] in ('.github', 'docs', 'build', '.gradle'): continue
+                  if relative.name in ('README.md', 'SHA256SUMS.txt'): continue
+                  relative.parent.mkdir(parents=True, exist_ok=True)
+                  relative.write_bytes(z.read(item))
+          p = pathlib.Path('app/src/main/java/com/everyonesniche/nightkeys/service/LightingService.java')
+          s = p.read_text()
+          assert 'app.config.offThreshold(),1200,350' in s
+          p.write_text(s.replace('app.config.offThreshold(),1200,350','app.config.offThreshold(),0,250'))
+          pathlib.Path('README.md').write_text('# NightKeys\n\nOpen-source keyboard backlight automation for the Unihertz Titan 2 Elite.\n\nCommunity release preparation is in progress. No public release APK is available yet.\nThe imported lighting logic matches the phone-tested 0.9.7-rc8 timing.\n')
+          pathlib.Path('.github/workflows/import-baseline.yml').unlink()
+          PY
+          chmod +x gradlew tools/test-core.sh
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Import source as normal files; preserve phone-tested 0.9.7 lighting timing'
+          git push
