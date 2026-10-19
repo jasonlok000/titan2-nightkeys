@@ -1,0 +1,41 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.everyonesniche.nightkeys'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.everyonesniche.nightkeys'
+        minSdk 34
+        targetSdk 36
+        versionCode 7
+        versionName '0.9.6-rc7'
+        testInstrumentationRunner 'com.everyonesniche.nightkeys.bridge.PermissionTests'
+    }
+    buildFeatures { aidl true; buildConfig true }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    signingConfigs {
+        personal {
+            if (System.getenv('NIGHTKEYS_KEYSTORE')) {
+                storeFile file(System.getenv('NIGHTKEYS_KEYSTORE'))
+                storePassword System.getenv('NIGHTKEYS_STORE_PASSWORD')
+                keyAlias System.getenv('NIGHTKEYS_KEY_ALIAS') ?: 'nightkeys'
+                keyPassword System.getenv('NIGHTKEYS_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (System.getenv('NIGHTKEYS_KEYSTORE')) signingConfig signingConfigs.personal
+        }
+    }
+    lint { abortOnError true; checkReleaseBuilds true }
+}
+dependencies {
+    implementation 'dev.rikka.shizuku:api:13.1.5'
+    implementation 'dev.rikka.shizuku:provider:13.1.5'
+}

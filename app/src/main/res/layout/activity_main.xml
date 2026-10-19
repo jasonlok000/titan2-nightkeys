@@ -1,0 +1,100 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/background">
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent"
+        android:fillViewport="true" android:clipToPadding="false">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="22dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+                <ImageView android:layout_width="28dp" android:layout_height="28dp"
+                    android:src="@drawable/ic_keyboard_moon" android:tint="@color/accent" android:importantForAccessibility="no"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp" android:text="@string/wordmark" android:textColor="@color/accent"
+                    android:textSize="12sp" android:fontFamily="sans-serif-medium"/>
+            </LinearLayout>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="24dp" android:text="@string/headline" android:textSize="32sp"
+                android:fontFamily="sans-serif-medium" android:textColor="@color/text" android:lineSpacingExtra="2dp"/>
+            <TextView style="@style/Body" android:text="@string/subtitle"/>
+
+            <LinearLayout style="@style/Card">
+                <TextView android:id="@+id/status_title" style="@style/SectionTitle" android:text="@string/status_initial"
+                    android:accessibilityLiveRegion="polite"/>
+                <TextView android:id="@+id/status_detail" style="@style/Body" android:text="@string/detail_initial"/>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp" android:gravity="bottom" android:orientation="horizontal">
+                    <TextView android:id="@+id/lux_value" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/unknown_lux" android:textSize="48sp" android:textColor="@color/accent"
+                        android:fontFamily="sans-serif-light"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/lux"
+                        android:layout_marginStart="8dp" android:layout_marginBottom="9dp" android:textSize="16sp" android:textColor="@color/muted"/>
+                </LinearLayout>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="@string/ambient_label" android:textSize="11sp" android:letterSpacing="0.12" android:textColor="@color/muted"/>
+                <com.everyonesniche.nightkeys.ui.LuxMeterView android:id="@+id/lux_meter"
+                    android:layout_width="match_parent" android:layout_height="68dp" android:importantForAccessibility="no"/>
+                <Button android:id="@+id/main_action" style="@style/PrimaryButton" android:text="@string/enable"/>
+            </LinearLayout>
+
+            <LinearLayout style="@style/Card">
+                <TextView style="@style/SectionTitle" android:text="@string/diag_title"/>
+                <TextView style="@style/Body" android:text="@string/diag_description"/>
+                <TextView android:id="@+id/diag_live" style="@style/Body" android:layout_marginTop="14dp"
+                    android:text="@string/diag_live_initial" android:textColor="@color/accent" android:textIsSelectable="true"/>
+                <Button android:id="@+id/diag_refresh" style="@style/SecondaryButton" android:text="@string/diag_refresh"/>
+                <Switch android:id="@+id/diag_hold" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:minHeight="62dp" android:paddingEnd="8dp" android:text="@string/diag_hold" android:textSize="14sp"/>
+                <TextView style="@style/Body" android:text="@string/diag_hold_note"/>
+                <Button android:id="@+id/diag_force_off" style="@style/SecondaryButton" android:text="@string/diag_force_off"/>
+                <Button android:id="@+id/diag_restore" style="@style/SecondaryButton" android:text="@string/diag_restore"/>
+                <TextView style="@style/SectionTitle" android:layout_marginTop="20dp" android:text="@string/diag_monitor_title"/>
+                <Button android:id="@+id/diag_lifecycle" style="@style/SecondaryButton" android:text="@string/diag_lifecycle"/>
+                <Button android:id="@+id/diag_sensor" style="@style/SecondaryButton" android:text="@string/diag_sensor"/>
+                <Button android:id="@+id/diag_stop_monitor" style="@style/SecondaryButton" android:text="@string/diag_stop_monitor"/>
+                <Button android:id="@+id/diag_clear_log" style="@style/SecondaryButton" android:text="@string/diag_clear_log"/>
+                <TextView android:id="@+id/diag_log" style="@style/Body" android:layout_marginTop="10dp"
+                    android:text="@string/diag_log_initial" android:textIsSelectable="true" android:fontFamily="monospace" android:textSize="11sp"/>
+            </LinearLayout>
+
+            <LinearLayout style="@style/Card">
+                <TextView style="@style/SectionTitle" android:text="@string/threshold_title"/>
+                <TextView android:id="@+id/threshold_label" style="@style/Body" android:text="@string/threshold_initial" android:textColor="@color/accent"/>
+                <SeekBar android:id="@+id/threshold" android:layout_width="match_parent" android:layout_height="48dp"
+                    android:layout_marginTop="10dp" android:max="199" android:progress="19"
+                    android:contentDescription="@string/threshold_title"/>
+                <TextView style="@style/Body" android:text="@string/threshold_description"/>
+                <Button android:id="@+id/room_threshold" style="@style/SecondaryButton" android:text="@string/calibrate_room"/>
+            </LinearLayout>
+
+            <LinearLayout style="@style/Card">
+                <TextView style="@style/SectionTitle" android:text="@string/setup_title"/>
+                <TextView android:id="@+id/device_label" style="@style/Body" android:text="@string/edition"/>
+                <TextView style="@style/Body" android:text="@string/setup_description"/>
+                <Button android:id="@+id/authorize" style="@style/SecondaryButton" android:text="@string/authorize"/>
+                <TextView android:id="@+id/access_label" style="@style/Body" android:text="@string/access_initial"/>
+                <TextView style="@style/Body" android:layout_marginTop="20dp" android:text="@string/capture_instructions"/>
+                <Button android:id="@+id/open_display" style="@style/SecondaryButton" android:text="@string/open_display"/>
+                <Button android:id="@+id/capture" style="@style/SecondaryButton" android:text="@string/capture"/>
+                <TextView android:id="@+id/minimum_label" style="@style/Body" android:text="@string/minimum_initial"/>
+                <Button android:id="@+id/test" style="@style/SecondaryButton" android:text="@string/test"/>
+                <TextView style="@style/Body" android:text="@string/test_instructions"/>
+                <Button android:id="@+id/confirm_test" style="@style/SecondaryButton" android:text="@string/confirm_test"/>
+            </LinearLayout>
+
+            <Button android:id="@+id/advanced_toggle" style="@style/SecondaryButton" android:layout_marginTop="22dp" android:text="@string/advanced"/>
+            <LinearLayout android:id="@+id/advanced_body" style="@style/Card" android:visibility="gone">
+                <Switch android:id="@+id/resume_boot" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:minHeight="56dp" android:text="@string/resume_boot" android:textSize="14sp" android:paddingEnd="8dp"/>
+                <TextView style="@style/Body" android:text="@string/reliability"/>
+                <Button android:id="@+id/app_settings" style="@style/SecondaryButton" android:text="@string/app_settings"/>
+                <Button android:id="@+id/diagnostics" style="@style/SecondaryButton" android:text="@string/diagnostics"/>
+                <Button android:id="@+id/restore" style="@style/SecondaryButton" android:text="@string/restore"/>
+                <TextView style="@style/Body" android:text="@string/caution" android:textColor="@color/warning"/>
+            </LinearLayout>
+            <TextView android:id="@+id/error" style="@style/Body" android:layout_marginTop="16dp"
+                android:textColor="@color/warning" android:visibility="gone" android:accessibilityLiveRegion="polite"/>
+            <TextView style="@style/Body" android:layout_marginTop="26dp" android:layout_marginBottom="16dp"
+                android:text="@string/footer" android:textSize="11sp" android:gravity="center" android:lineSpacingExtra="6dp"/>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>
