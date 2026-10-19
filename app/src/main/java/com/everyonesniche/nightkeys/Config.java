@@ -34,7 +34,7 @@ public final class Config {
     }
     public boolean verified() { return captured() && Build.FINGERPRINT.equals(prefs.getString("verified_build", "")); }
     public void markVerified() {
-        if (!captured()) throw new IllegalStateException("Capture a minimum for this firmware first");
+        if (!captured()) throw new IllegalStateException("Confirm your keyboard brightness first");
         commit(prefs.edit().putString("verified_build", Build.FINGERPRINT));
     }
     public boolean wanted() { return prefs.getBoolean("wanted", false); }
@@ -45,13 +45,6 @@ public final class Config {
     public void resumeAfterBoot(boolean enabled) { commit(prefs.edit().putBoolean("resume_after_boot", enabled)); }
     public String lastError() { return prefs.getString("error", ""); }
     public void error(String value) { prefs.edit().putString("error", value == null ? "" : value).apply(); }
-    public String diagnosticMode() { return prefs.getString("diagnostic_mode", "none"); }
-    public void diagnosticMode(String mode) {
-        String value = mode == null ? "none" : mode;
-        if (!value.equals("none") && !value.equals("hold") && !value.equals("off"))
-            throw new IllegalArgumentException("Unknown diagnostic mode");
-        commit(prefs.edit().putString("diagnostic_mode", value));
-    }
     public static boolean supportedIdentity() {
         String s = (Build.MANUFACTURER + " " + Build.MODEL + " " + Build.DISPLAY + " " + Build.FINGERPRINT).toLowerCase(Locale.ROOT);
         return Process.myUid() / 100000 == 0 && s.contains("unihertz") && s.contains("titan") && s.contains("elite");

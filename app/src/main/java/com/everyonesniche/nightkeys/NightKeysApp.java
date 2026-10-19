@@ -10,15 +10,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class NightKeysApp extends Application {
     public Config config;
     public RecoveryJournal journal;
-    public DiagnosticLog diagnostics;
     public BridgeClient bridge;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final CopyOnWriteArrayList<Runnable> listeners = new CopyOnWriteArrayList<>();
     public volatile RuntimeState state = RuntimeState.idle();
     @Override public void onCreate() {
         super.onCreate();
-        config = new Config(this); journal = new RecoveryJournal(this); diagnostics = new DiagnosticLog(this);
-        diagnostics.noteAppProcessStart();
+        config = new Config(this); journal = new RecoveryJournal(this);
         bridge = new BridgeClient(this, this::notifyChanged);
     }
     public void publish(RuntimeState value) { state = value; notifyChanged(); }

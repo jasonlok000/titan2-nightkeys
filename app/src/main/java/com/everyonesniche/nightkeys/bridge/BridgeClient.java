@@ -92,7 +92,7 @@ public final class BridgeClient {
             connect();
         }));
         Shizuku.addBinderDeadListener(() -> main.post(() -> disconnect(
-                "Shizuku stopped. Start it again; the phone still turns the keyboard off with the screen.")));
+                "Shizuku stopped. Restart it, then open NightKeys. A saved keyboard change may still need restoration.")));
         Shizuku.addRequestPermissionResultListener((request, grant) -> {
             if (request != REQUEST) return;
             main.post(() -> {

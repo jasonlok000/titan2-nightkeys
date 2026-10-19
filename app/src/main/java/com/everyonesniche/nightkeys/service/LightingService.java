@@ -209,7 +209,7 @@ public final class LightingService extends Service implements SensorEventListene
             if (deadline >= 0) worker.postDelayed(transition,Math.max(1,deadline-SystemClock.elapsedRealtime()));
             String title, detail;
             switch (policy.reason()) {
-                case DARK: title = "A little light. As long as you need."; detail = "Minimum brightness requested · no typing timeout"; break;
+                case DARK: title = "A little light. As long as you need."; detail = "Your chosen keyboard brightness · continuous lighting"; break;
                 case SETTLING_DARK: title = "Settling into the dark"; detail = "Briefly checking the light level to avoid flicker."; break;
                 case SETTLING_BRIGHT: title = "The room is getting brighter"; detail = "Keyboard lighting will switch off shortly."; break;
                 case WAITING_FOR_SENSOR: title = "Reading the room"; detail = "The keyboard stays off until a fresh light reading arrives."; break;
@@ -262,7 +262,7 @@ public final class LightingService extends Service implements SensorEventListene
         if (app.journal.pending() && port != null) port.emergencyOff();
         try {
             session.finish(); stopping = true;
-            app.publish(new RuntimeState(false,false,false,Float.NaN,"Lighting paused safely",clean(error),0));
+            app.publish(new RuntimeState(false,false,false,Float.NaN,"Lighting paused",clean(error),0));
             stopForeground(STOP_FOREGROUND_REMOVE); stopSelf();
         } catch (Exception restoreError) {
             publish("Restoration needs attention", clean(error) + " · " + clean(restoreError),true);

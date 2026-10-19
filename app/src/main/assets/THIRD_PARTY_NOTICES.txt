@@ -1,0 +1,64 @@
+MIT License
+
+Copyright (c) 2026 NightKeys contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+# Third-party notices and research acknowledgement
+
+NightKeys's application code, tests and build bootstrap were authored for this project. They are provided under the project's MIT license. No proprietary Unihertz framework binaries, app packages, firmware images, or PhysiBoard implementation source are included.
+
+## Shizuku API and provider
+
+The build declares `dev.rikka.shizuku:api:13.1.5` and `dev.rikka.shizuku:provider:13.1.5`. These are downloaded at build time, not included as binaries in this source delivery.
+
+MIT License
+
+Copyright (c) 2021 RikkaW
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+## Device-interface research
+
+The vendor-control route in NightKeys 0.9.5 is based on publicly documented interface behavior from **titan2-keylight** (`furkan-bayrak/titan2-keylight`, MIT) and **PhysiBoard** (`brobata/physiboard`). NightKeys does not redistribute either project's implementation. It reimplements the documented `agui_common` calls, timeout semantics and close-light broadcast in Java over an explicitly authorized Shizuku shell transport. See `docs/SOURCES.md`.
+
+`titan2-keylight` is MIT licensed. Its repository states that it was tested on the Titan 2 Elite and documents the `agui_common` transaction interface used by the stock Agui keyboard stack.
+
+Neither those projects, Unihertz nor Shizuku's authors endorse or validate NightKeys.
+
+## Build and transitive dependencies
+
+Android/Gradle build tools and any transitive libraries retain their own licenses. They are fetched by the build, not redistributed in this archive. Before distributing a compiled APK, review the actual resolved dependency graph, collect required notices, and audit the release artifact; this source notice is not a substitute for a complete dependency license audit.

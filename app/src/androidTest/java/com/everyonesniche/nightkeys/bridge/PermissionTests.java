@@ -10,8 +10,6 @@ import android.os.SystemClock;
 import android.view.accessibility.AccessibilityNodeInfo;
 import com.everyonesniche.nightkeys.NightKeysApp;
 import com.everyonesniche.nightkeys.ui.MainActivity;
-import com.everyonesniche.nightkeys.DiagnosticLog;
-import com.everyonesniche.nightkeys.service.DiagnosticMonitorService;
 import rikka.shizuku.Shizuku;
 
 /** Emulator-only transport tests. The installable APK does not contain this class. */
@@ -88,13 +86,11 @@ public final class PermissionTests extends Instrumentation {
             check(!app.bridge.ready(), "Non-Titan emulator unexpectedly exposed agui_common");
             check(app.bridge.status().contains("agui_common"), "Failure did not identify agui_common");
         });
-        test("diagnostic lifecycle monitor runs without Titan vendor service", () -> {
-            DiagnosticMonitorService.command(context, DiagnosticMonitorService.START_LIFECYCLE);
-            await(() -> app.diagnostics.monitorRunning(), 5000, "Diagnostic monitor did not start");
-            check(DiagnosticLog.MODE_LIFECYCLE.equals(app.diagnostics.monitorMode()), "Wrong diagnostic monitor mode");
-            DiagnosticMonitorService.command(context, DiagnosticMonitorService.STOP);
-            await(() -> !app.diagnostics.monitorRunning(), 5000, "Diagnostic monitor did not stop");
-            check(app.diagnostics.export().contains("MONITOR_START mode=lifecycle"), "Monitor start was not logged");
+        test("production screen has no diagnostic hardware controls", () -> {
+            check(context.getResources().getIdentifier("diag_hold", "id", context.getPackageName()) == 0,
+                    "Diagnostic hold control leaked into the app");
+            check(context.getResources().getIdentifier("diag_force_off", "id", context.getPackageName()) == 0,
+                    "Diagnostic off control leaked into the app");
         });
     }
 
