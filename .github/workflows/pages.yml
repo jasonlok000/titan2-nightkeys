@@ -24,7 +24,7 @@ jobs:
         with: {persist-credentials: false}
       - run: python3 tools/check-site.py
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with: {path: site}
       - uses: actions/deploy-pages@v4
         id: deploy
