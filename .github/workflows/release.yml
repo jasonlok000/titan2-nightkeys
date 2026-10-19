@@ -1,0 +1,65 @@
+name: Publish release
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+concurrency:
+  group: nightkeys-publishing
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.repository == 'jasonlok000/titan2-nightkeys'
+    uses: ./.github/workflows/ci.yml
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      NIGHTKEYS_KEYSTORE_BASE64: ${{ secrets.NIGHTKEYS_KEYSTORE_BASE64 }}
+      NIGHTKEYS_STORE_PASSWORD: ${{ secrets.NIGHTKEYS_STORE_PASSWORD }}
+      NIGHTKEYS_KEY_PASSWORD: ${{ secrets.NIGHTKEYS_KEY_PASSWORD }}
+      NIGHTKEYS_KEY_ALIAS: ${{ secrets.NIGHTKEYS_KEY_ALIAS }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Require permanent secrets and a published certificate pin
+        run: |
+          set -euo pipefail
+          test -s .signing/certificate.sha256
+          : "${NIGHTKEYS_KEYSTORE_BASE64:?Owner must install the permanent signing secrets}"
+          : "${NIGHTKEYS_STORE_PASSWORD:?Missing permanent signing password}"
+          : "${NIGHTKEYS_KEY_PASSWORD:?Missing permanent key password}"
+          : "${NIGHTKEYS_KEY_ALIAS:?Missing permanent key alias}"
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then test "$GITHUB_REF" = refs/heads/main; fi
+          umask 077
+          printf '%s' "$NIGHTKEYS_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/nightkeys-release.p12"
+          echo "NIGHTKEYS_KEYSTORE=$RUNNER_TEMP/nightkeys-release.p12" >> "$GITHUB_ENV"
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '17'}
+      - run: bash tools/setup-sdk.sh
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-build-${{ github.sha }}
+          path: app/build/outputs/apk/
+      - name: Sign and enforce certificate continuity
+        id: package
+        run: bash tools/package-release.sh release
+      - name: Publish immutable versioned assets
+        env:
+          VERSION: ${{ steps.package.outputs.version }}
+          TAG: ${{ steps.package.outputs.tag }}
+        run: |
+          set -euo pipefail
+          test -f "docs/releases/$VERSION.md"
+          FLAGS=()
+          if [[ "$VERSION" == *-* ]]; then FLAGS+=(--prerelease); fi
+          gh release create "$TAG" deliverables/* --repo jasonlok000/titan2-nightkeys \
+            --target "$GITHUB_SHA" --title "NightKeys $VERSION" --notes-file "docs/releases/$VERSION.md" "${FLAGS[@]}"
+      - name: Destroy runner signing copy
+        if: always()
+        run: rm -f "$RUNNER_TEMP/nightkeys-release.p12" "$RUNNER_TEMP/nightkeys-aligned.apk"

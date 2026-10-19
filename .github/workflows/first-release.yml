@@ -1,0 +1,109 @@
+name: First community release
+on:
+  push:
+    branches: [main]
+    paths: ['.release/first-release.request']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: nightkeys-publishing
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.repository == 'jasonlok000/titan2-nightkeys' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Refuse key replacement or a second bootstrap
+        run: |
+          set -euo pipefail
+          test ! -f .signing/certificate.sha256
+          test "$(cat .release/first-release.request)" = v1.0.0-beta.1
+          test "$(gh api repos/jasonlok000/titan2-nightkeys/releases --jq length)" = 0
+          test "$(gh api repos/jasonlok000/titan2-nightkeys/git/ref/heads/main --jq .object.sha)" = "$GITHUB_SHA"
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '17'}
+      - run: bash tools/setup-sdk.sh
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-build-${{ github.sha }}
+          path: app/build/outputs/apk/
+      - name: Create permanent key and encrypted maintainer backup
+        run: |
+          set -euo pipefail
+          umask 077
+          PRIVATE="$RUNNER_TEMP/nightkeys-private"
+          mkdir -m 700 "$PRIVATE"
+          PASSWORD="$(openssl rand -hex 32)"
+          echo "::add-mask::$PASSWORD"
+          export NIGHTKEYS_STORE_PASSWORD="$PASSWORD"
+          export NIGHTKEYS_KEY_PASSWORD="$PASSWORD"
+          export NIGHTKEYS_KEY_ALIAS=nightkeys
+          export NIGHTKEYS_KEYSTORE="$PRIVATE/nightkeys-release.p12"
+          keytool -genkeypair -keystore "$NIGHTKEYS_KEYSTORE" -storetype PKCS12 \
+            -storepass:env NIGHTKEYS_STORE_PASSWORD -keypass:env NIGHTKEYS_KEY_PASSWORD \
+            -alias nightkeys -keyalg RSA -keysize 4096 -sigalg SHA256withRSA -validity 10000 \
+            -dname 'CN=NightKeys Community Release, OU=Open Source, O=NightKeys' -noprompt
+          python3 - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ['NIGHTKEYS_KEYSTORE']).parent
+          (p/'signing.json').write_text(json.dumps({'storePassword':os.environ['NIGHTKEYS_STORE_PASSWORD'],
+            'keyPassword':os.environ['NIGHTKEYS_KEY_PASSWORD'],'alias':'nightkeys'},indent=2))
+          (p/'README.txt').write_text('PRIVATE PERMANENT ANDROID SIGNING KEY. Never commit or publish. Keep redundant secure backups. Use tools/install-signing-secrets.py from the public repository to configure future releases with your own GitHub CLI login. Losing this key prevents ordinary updates to this application identity.\n')
+          PY
+          tar -C "$PRIVATE" -cf "$RUNNER_TEMP/signing-backup.tar" nightkeys-release.p12 signing.json README.txt
+          mkdir -p build/encrypted-backup
+          openssl cms -encrypt -binary -aes-256-cbc -in "$RUNNER_TEMP/signing-backup.tar" \
+            -outform DER -out build/encrypted-backup/signing-backup.cms .signing/backup-recipient.pem
+          printf 'Recipient certificate SHA256: ' > build/encrypted-backup/README.txt
+          openssl x509 -in .signing/backup-recipient.pem -outform DER | sha256sum >> build/encrypted-backup/README.txt
+          printf '\nOnly the maintainer private recipient key can decrypt signing-backup.cms. This artifact expires; it is not a permanent backup.\n' >> build/encrypted-backup/README.txt
+          {
+            echo "NIGHTKEYS_KEYSTORE=$NIGHTKEYS_KEYSTORE"
+            echo "NIGHTKEYS_STORE_PASSWORD=$PASSWORD"
+            echo "NIGHTKEYS_KEY_PASSWORD=$PASSWORD"
+            echo 'NIGHTKEYS_KEY_ALIAS=nightkeys'
+          } >> "$GITHUB_ENV"
+      - name: Preserve only the encrypted signing backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: maintainer-encrypted-signing-backup
+          path: build/encrypted-backup/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Sign and independently check the release package
+        id: package
+        run: bash tools/package-release.sh bootstrap
+      - name: Pin the permanent public certificate
+        run: |
+          set -euo pipefail
+          CONTENT="$(base64 -w0 deliverables/signing-certificate.sha256)"
+          gh api --method PUT repos/jasonlok000/titan2-nightkeys/contents/.signing/certificate.sha256 \
+            -f message='Pin permanent community Android signing certificate' -f branch=main -f content="$CONTENT" >/dev/null
+      - name: Publish beta with source and verification records
+        run: |
+          set -euo pipefail
+          gh release create v1.0.0-beta.1 deliverables/* --repo jasonlok000/titan2-nightkeys \
+            --target "$GITHUB_SHA" --title 'NightKeys 1.0.0-beta.1' --prerelease \
+            --notes-file docs/releases/1.0.0-beta.1.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NightKeys-1.0.0-beta.1-public-release
+          path: deliverables/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Destroy runner copies of signing secrets
+        if: always()
+        run: |
+          rm -rf "$RUNNER_TEMP/nightkeys-private"
+          rm -f "$RUNNER_TEMP/signing-backup.tar" "$RUNNER_TEMP/nightkeys-aligned.apk"
