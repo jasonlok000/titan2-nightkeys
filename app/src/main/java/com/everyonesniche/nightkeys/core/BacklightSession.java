@@ -6,8 +6,8 @@ package com.everyonesniche.nightkeys.core;
  * NightKeys deliberately leaves keyboard brightness under the stock Unihertz slider.
  * During an active automation session it owns exactly one vendor key:
  * keyboard_brightness_timeout. 0 means disabled; Integer.MAX_VALUE is effectively
- * continuous while the display is on. The vendor itself hard-powers the LED off on
- * SCREEN_OFF. A durable snapshot is written before the first mutation and restored
+ * continuous. NightKeys explicitly writes 0 plus CLOSE_KEYBOARD_LIGHT on screen-off;
+ * the tested firmware can relight otherwise. A durable snapshot is saved and restored
  * when automation stops.
  */
 public final class BacklightSession {

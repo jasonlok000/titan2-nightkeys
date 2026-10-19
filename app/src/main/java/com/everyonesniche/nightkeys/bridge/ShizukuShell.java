@@ -16,8 +16,8 @@ import rikka.shizuku.Shizuku;
 /**
  * Small compatibility wrapper around Shizuku's legacy remote-process primitive.
  *
- * Shizuku API 13 still ships the implementation used by rish, but made the Java
- * entry point private while steering new apps toward UserService. NightKeys' earlier
+ * Shizuku API 13 still ships a legacy remote-process implementation. Its Java
+ * entry point is private; upstream recommends UserService for new apps. NightKeys' earlier
  * UserService transport did not reconnect on the target Titan firmware. For this
  * device-specific utility we therefore invoke that API implementation reflectively
  * and execute only fixed, allow-listed argv arrays. There is no `sh -c`, no caller
