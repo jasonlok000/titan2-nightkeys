@@ -1,13 +1,15 @@
 plugins { id 'com.android.application' }
+def version = new Properties()
+rootProject.file('version.properties').withInputStream { version.load(it) }
 android {
     namespace 'com.everyonesniche.nightkeys'
     compileSdk 36
     defaultConfig {
         applicationId 'com.everyonesniche.nightkeys'
-        minSdk 34
+        minSdk 36
         targetSdk 36
-        versionCode 7
-        versionName '0.9.6-rc7'
+        versionCode version.getProperty('versionCode').toInteger()
+        versionName version.getProperty('versionName')
         testInstrumentationRunner 'com.everyonesniche.nightkeys.bridge.PermissionTests'
     }
     buildFeatures { aidl true; buildConfig true }
@@ -16,7 +18,7 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     signingConfigs {
-        personal {
+        releaseKey {
             if (System.getenv('NIGHTKEYS_KEYSTORE')) {
                 storeFile file(System.getenv('NIGHTKEYS_KEYSTORE'))
                 storePassword System.getenv('NIGHTKEYS_STORE_PASSWORD')
@@ -26,11 +28,12 @@ android {
         }
     }
     buildTypes {
+        debug { applicationIdSuffix '.debug'; versionNameSuffix '-dev' }
         release {
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            if (System.getenv('NIGHTKEYS_KEYSTORE')) signingConfig signingConfigs.personal
+            debuggable false
+            minifyEnabled false
+            shrinkResources false
+            if (System.getenv('NIGHTKEYS_KEYSTORE')) signingConfig signingConfigs.releaseKey
         }
     }
     lint { abortOnError true; checkReleaseBuilds true }
