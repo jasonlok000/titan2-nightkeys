@@ -1,0 +1,25 @@
+name: Bug report
+description: Something did not behave as expected.
+title: '[Bug] '
+body:
+  - type: markdown
+    attributes:
+      value: 'Restore safely before removing the app. Never post pairing codes, passwords, signing keys or personal screenshots.'
+  - type: input
+    id: version
+    attributes: {label: NightKeys version, placeholder: '1.0.0-beta.1'}
+    validations: {required: true}
+  - type: input
+    id: firmware
+    attributes: {label: Phone and exact firmware, description: 'Settings → About phone → Build number. Elite and regular Titan 2 are different.'}
+    validations: {required: true}
+  - type: textarea
+    id: steps
+    attributes: {label: What did you do?, description: 'Explain each step, expected behavior and what the physical keyboard actually did.'}
+    validations: {required: true}
+  - type: textarea
+    id: report
+    attributes: {label: Reviewed support report, description: 'NightKeys → Copy support report. Review before posting; this issue is public.', render: text}
+  - type: textarea
+    id: recovery
+    attributes: {label: Did Stop & restore work?, description: 'Mention pending recovery, other keyboard-light apps, stock tile use, and whether the issue followed sleep or reboot.'}

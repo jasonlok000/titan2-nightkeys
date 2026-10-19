@@ -1,0 +1,18 @@
+name: Firmware compatibility report
+description: Share observed results on your Titan 2 Elite.
+title: '[Firmware] '
+body:
+  - type: input
+    id: firmware
+    attributes: {label: Exact phone / Android / firmware / NightKeys version}
+    validations: {required: true}
+  - type: textarea
+    id: checks
+    attributes:
+      label: Physical results
+      description: 'Report each result, including failures. Settings readbacks alone are not enough.'
+      placeholder: 'Dark for 45 s without typing; screen off including 0.5 s rebound; dark wake; bright room; repeated cycles; reboot/reconnect; Stop & restore.'
+    validations: {required: true}
+  - type: textarea
+    id: report
+    attributes: {label: Reviewed support report, render: text}

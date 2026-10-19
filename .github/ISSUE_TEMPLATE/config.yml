@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Step-by-step setup guide
+    url: https://jasonlok000.github.io/titan2-nightkeys/setup.html
+    about: Start here for installation, pairing, reboot and safe removal.
+  - name: Security reporting
+    url: https://github.com/jasonlok000/titan2-nightkeys/blob/main/SECURITY.md
+    about: Do not post vulnerability details or secrets publicly.

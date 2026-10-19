@@ -1,0 +1,27 @@
+name: Finalize community repository
+on:
+  push:
+    paths: ['.bootstrap/finalize.py']
+permissions:
+  contents: write
+  actions: write
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Commit complete licence notices
+        run: |
+          set -euo pipefail
+          python3 .bootstrap/finalize.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Collect complete runtime dependency notices and retire migration scaffolding'
+          git push
+      - name: Start full validation and website deployment
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: |
+          gh workflow run ci.yml --ref main
+          gh workflow run pages.yml --ref main

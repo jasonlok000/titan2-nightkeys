@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "tools": [
+    {
+      "id": "nightkeys",
+      "name": "NightKeys",
+      "description": "Automatic keyboard backlighting for the Titan 2 Elite.",
+      "status": "available",
+      "releaseStage": "beta",
+      "source": "https://github.com/jasonlok000/titan2-nightkeys",
+      "guide": "setup.html",
+      "platform": "Titan 2 Elite / Android 16"
+    }
+  ]
+}

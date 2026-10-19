@@ -1,0 +1,100 @@
+name: Continuous integration
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  android-build:
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[bootstrap]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '17'}
+      - name: Policy and source checks
+        run: |
+          set -euo pipefail
+          mkdir -p build/evidence
+          bash tools/test-core.sh | tee build/evidence/core.log
+          java tools/JavaSyntaxCheck.java app/src/main/java
+          java tools/JavaSyntaxCheck.java app/src/androidTest/java
+          python3 tools/check-source.py
+          test -f app/src/main/assets/THIRD_PARTY_NOTICES.txt
+          ! grep -R -q 'diag_hold\|DiagnosticMonitorService' app/src/main
+          grep -q 'app.config.offThreshold(),0,250' app/src/main/java/com/everyonesniche/nightkeys/service/LightingService.java
+      - run: bash tools/setup-sdk.sh
+      - name: Compile and lint both variants
+        run: |
+          set -euo pipefail
+          bash gradlew --no-daemon --console=plain :app:lintDebug :app:lintRelease :app:assembleDebug :app:assembleRelease :app:assembleDebugAndroidTest 2>&1 | tee build/evidence/android-build.log
+          bash gradlew --no-daemon :app:dependencies --configuration releaseRuntimeClasspath > build/evidence/dependencies.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-build-${{ github.sha }}
+          path: app/build/outputs/apk/
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-build-evidence-${{ github.sha }}
+          path: |
+            build/evidence/
+            app/build/reports/
+          retention-days: 14
+  android-runtime:
+    needs: android-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-build-${{ github.sha }}
+          path: app/build/outputs/apk/
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Android 16 and real non-root Shizuku
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          cores: 2
+          ram-size: 2048M
+          emulator-boot-timeout: 300
+          emulator-options: -no-window -no-snapshot -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash tools/emulator-test.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-runtime-evidence-${{ github.sha }}
+          path: build/evidence/
+          retention-days: 14
+  website:
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[bootstrap]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 tools/check-site.py
+      - run: node --check site/assets/site.js
+      - run: python3 -m pip install playwright==1.57.0
+      - run: python3 -m playwright install --with-deps chromium
+      - run: python3 tools/test-site.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: website-evidence-${{ github.sha }}
+          path: build/site-evidence/
+          retention-days: 14

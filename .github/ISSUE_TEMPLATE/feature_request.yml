@@ -1,0 +1,15 @@
+name: Feature or new Titan tool
+description: Propose a focused improvement or another useful phone tool.
+title: '[Idea] '
+body:
+  - type: textarea
+    id: problem
+    attributes: {label: What problem should this solve?, description: 'Explain the real use case, not just an implementation.'}
+    validations: {required: true}
+  - type: textarea
+    id: proposal
+    attributes: {label: Proposed behavior and alternatives}
+    validations: {required: true}
+  - type: textarea
+    id: constraints
+    attributes: {label: Device, permissions and recovery, description: 'Mention firmware, privileged access, how to undo changes and any existing open-source work.'}
