@@ -58,7 +58,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
     private Button primary, install, authorize;
     private SeekBar threshold;
     private LuxMeterView meter;
-    private final Runnable countdown = new Runnable() {
+    private final Runnable uiRefresh = new Runnable() {
         @Override public void run() {
             if (resumed) { render(); main.postDelayed(this, 1000); }
         }
@@ -139,10 +139,10 @@ public final class MainActivity extends Activity implements SensorEventListener 
     }
     @Override protected void onResume() {
         super.onResume(); resumed = true; app.addListener(changed);
-        app.bridge.connect(); render(); countdown.run();
+        app.bridge.connect(); render(); uiRefresh.run();
     }
     @Override protected void onPause() {
-        resumed = false; main.removeCallbacks(countdown); app.removeListener(changed);
+        resumed = false; main.removeCallbacks(uiRefresh); app.removeListener(changed);
         unregisterPreview(); super.onPause();
     }
     @Override protected void onDestroy() {
@@ -182,7 +182,8 @@ public final class MainActivity extends Activity implements SensorEventListener 
                 ? getString(R.string.start_shizuku_detail) : app.bridge.status());
         authorize.setText(app.bridge.ready() ? R.string.reconnect
                 : server ? R.string.authorize : R.string.start_shizuku);
-        authorize.setEnabled(installed && !active && !pending);
+        // Reconnection must remain available if a session needs restoration.
+        authorize.setEnabled(installed);
         findViewById(R.id.open_shizuku).setVisibility(installed ? View.VISIBLE : View.GONE);
         enableDetail.setText(active ? R.string.enabled_detail : pending ? R.string.restore_detail
                 : app.bridge.ready() ? R.string.enable_ready : R.string.enable_waiting);

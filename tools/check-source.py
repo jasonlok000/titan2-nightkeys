@@ -57,3 +57,5 @@ for file in main.rglob('*.java'):
 for name in ('test', 'confirm_test', 'diag_hold', 'diag_force_off'):
     assert name not in ids, 'Consumer trial control leaked: '+name
 print('PASS: no consumer test, calibration gate or 90-second expiry in the shipping app.')
+
+assert 'authorize.setEnabled(installed);' in (main/'java/com/everyonesniche/nightkeys/ui/MainActivity.java').read_text(), 'Recovery must not block Shizuku reconnect'
