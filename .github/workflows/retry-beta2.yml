@@ -1,0 +1,26 @@
+name: Retry release upgrade verification
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/retry-beta2.yml']
+permissions:
+  contents: write
+  actions: write
+jobs:
+  retry:
+    if: github.repository == 'jasonlok000/titan2-nightkeys' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove one-time trigger, then rerun official package verification
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/retry-beta2.yml
+          git commit -m 'Retire one-time release retry [bootstrap]'
+          git push origin HEAD:main
+          gh workflow run publish-offline-beta.yml --ref main --repo jasonlok000/titan2-nightkeys
