@@ -1,0 +1,115 @@
+name: Publish verified three-step beta
+on:
+  push:
+    branches: [main]
+    paths: ['.release/public-signatures/1.0.0-beta.2.json', '.github/workflows/publish-offline-beta.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: offline-nightkeys-beta2
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'jasonlok000/titan2-nightkeys' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REQUEST: .release/public-signatures/1.0.0-beta.2.json
+      VERSION: 1.0.0-beta.2
+      SOURCE: ef28840685e0d131bc47c26337b7df1f712763e1
+      BUILD_RUN: '39350841745'
+      CERT: d02a459162cdd7de599afb65d97b46e64fb9b6716365ca54d20dc106d4e11e95
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, persist-credentials: false}
+      - name: Require the exact successful CI source and immutable release identity
+        run: |
+          set -euo pipefail
+          if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo 'Release already exists; refusing to overwrite it.'; exit 1
+          fi
+          mkdir -p build/evidence
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN" > build/evidence/source-ci.json
+          python3 - <<'PY'
+          import json,os,pathlib,subprocess
+          r=json.loads(pathlib.Path(os.environ['REQUEST']).read_text())
+          ci=json.loads(pathlib.Path('build/evidence/source-ci.json').read_text())
+          assert r['version']==os.environ['VERSION'] and r['sourceSha']==os.environ['SOURCE']
+          assert r['ciRun']==int(os.environ['BUILD_RUN'])
+          assert ci['head_sha']==r['sourceSha'] and ci['head_branch']=='main'
+          assert ci['status']=='completed' and ci['conclusion']=='success'
+          assert ci['path']=='.github/workflows/ci.yml'
+          assert ci['repository']['full_name']=='jasonlok000/titan2-nightkeys'
+          v=subprocess.check_output(['git','show',r['sourceSha']+':version.properties'],text=True)
+          assert 'versionName='+r['version'] in v and 'versionCode='+str(r['versionCode']) in v
+          assert pathlib.Path('.signing/certificate.sha256').read_text().strip()==r['certificateSha256']==os.environ['CERT']
+          PY
+          gh run download "$BUILD_RUN" --repo "$GITHUB_REPOSITORY" -n "android-build-$SOURCE" -D build/input
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '17'}
+      - run: bash tools/setup-sdk.sh
+      - name: Assemble public signatures and independently verify the APK
+        run: |
+          set -euo pipefail
+          python3 tools/apply-offline-signature.py "$REQUEST" build/input/release/app-release-unsigned.apk "deliverables/NightKeys-$VERSION.apk" --certificate-pin .signing/certificate.sha256
+          TOOLS="$ANDROID_HOME/build-tools/35.0.0"
+          "$TOOLS/apksigner" verify --verbose --print-certs "deliverables/NightKeys-$VERSION.apk" | tee deliverables/signature-verification.txt
+          grep -q "Signer #1 certificate SHA-256 digest: $CERT" deliverables/signature-verification.txt
+          "$TOOLS/zipalign" -c -v 4 "deliverables/NightKeys-$VERSION.apk" > deliverables/alignment-verification.txt
+          "$TOOLS/aapt" dump badging "deliverables/NightKeys-$VERSION.apk" > build/evidence/package.txt
+          grep -q "name='com.everyonesniche.nightkeys' versionCode='1000002' versionName='1.0.0-beta.2'" build/evidence/package.txt
+          ! grep -q application-debuggable build/evidence/package.txt
+          gh release download v1.0.0-beta.1 --repo "$GITHUB_REPOSITORY" -p nightkeys-signing-certificate.der -D deliverables
+          test "$(sha256sum deliverables/nightkeys-signing-certificate.der | cut -d' ' -f1)" = "$CERT"
+      - name: Enable emulator hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Verify beta.1 upgrades normally to the release APK on Android 16
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          cores: 2
+          ram-size: 2048M
+          emulator-boot-timeout: 300
+          emulator-options: -no-window -no-snapshot -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash tools/test-release-upgrade.sh
+      - name: Package exact source and build records
+        run: |
+          set -euo pipefail
+          git archive --format=zip --prefix="NightKeys-$VERSION/" -o "deliverables/NightKeys-$VERSION-source.zip" "$SOURCE"
+          git show "$SOURCE:docs/SETUP.md" > deliverables/SETUP.md
+          git show "$SOURCE:docs/SAFETY.md" > deliverables/SAFETY.md
+          git show "$SOURCE:docs/releases/$VERSION.md" > build/release-notes.md
+          cp build/evidence/upgrade.txt deliverables/upgrade-verification.txt
+          python3 - <<'PY'
+          import os,json,hashlib,pathlib
+          r=json.loads(pathlib.Path(os.environ['REQUEST']).read_text())
+          meta={k:r[k] for k in ('version','versionCode','sourceSha','ciRun','unsignedSha256','apkSha256','certificateSha256','signingTool')}
+          meta.update(applicationId='com.everyonesniche.nightkeys',debuggable=False,publicationRun=os.environ['GITHUB_RUN_ID'],validation='Android build/lint, 32 onboarding combinations, core tests, real Shizuku runtime tests and website browser tests passed; official signature/alignment/package verification and beta.1-to-beta.2 release APK installation upgrade passed.',hardware='Working 0.9.7 lighting baseline unchanged; no new consumer test prerequisite. Physical LEDs cannot be checked in the emulator.',limitations='Persistent large vendor timeout; no independent watchdog. Use Stop & restore before removal.')
+          pathlib.Path('deliverables/BUILD-INFO.json').write_text(json.dumps(meta,indent=2)+'\n')
+          p=pathlib.Path('deliverables')
+          (p/'SHA256SUMS.txt').write_text(''.join(hashlib.sha256(f.read_bytes()).hexdigest()+'  '+f.name+'\n' for f in sorted(p.iterdir()) if f.is_file() and f.name!='SHA256SUMS.txt'))
+          PY
+      - name: Publish the signed community update
+        run: |
+          set -euo pipefail
+          gh release create "v$VERSION" deliverables/* --repo "$GITHUB_REPOSITORY" --target "$SOURCE" --title "NightKeys $VERSION" --notes-file build/release-notes.md --prerelease --draft
+          gh release edit "v$VERSION" --repo "$GITHUB_REPOSITORY" --draft=false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NightKeys-1.0.0-beta.2-public-release
+          path: deliverables/
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: NightKeys-beta2-release-verification
+          path: build/evidence/
+          retention-days: 14
