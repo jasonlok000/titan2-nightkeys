@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.0-beta.2
+
+- Replace the temporary check/confirmation flow with three steps: install Shizuku if absent, connect and authorize, enable.
+- Detect installed Shizuku automatically, preserve real compatibility/recovery checks, and request notification permission during Enable.
+- Remove the TEST action, 90-second timer and saved-verification prerequisites; lighting policy, stock brightness and recovery remain unchanged.
+- Replace the generic landing-page handset with an original, proportion-matched Titan 2 Elite SVG and its physical key layout.
+- Match the user guide to the same three steps; keep detailed pairing help and optional preferences.
+- Add onboarding state coverage and UI/website regression checks.
+
+
 ## 1.0.0-beta.1 — 2026-10-19
 
 First dedicated, open-source community beta.

@@ -51,7 +51,7 @@ if (phone) {
 // Optional setup progress is stored only on this browser, never submitted.
 const checks = [...document.querySelectorAll('[data-step-check]')];
 if (checks.length) {
-  const key = 'titan-tools-setup-v1';
+  const key = 'titan-tools-setup-v2';
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (_) { }
   const update = () => {

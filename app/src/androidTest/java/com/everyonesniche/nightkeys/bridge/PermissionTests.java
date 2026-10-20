@@ -48,6 +48,14 @@ public final class PermissionTests extends Instrumentation {
     }
 
     private void fresh() throws Exception {
+        test("fresh installation needs no saved check to enable on a compatible device", () -> {
+            check(!context.getSharedPreferences("configuration", Context.MODE_PRIVATE).contains("verified_build"),
+                    "Fresh fixture unexpectedly verified");
+            check(com.everyonesniche.nightkeys.core.Onboarding.canStart(true, true, true, false, false),
+                    "Fresh connected device was gated");
+            check(!com.everyonesniche.nightkeys.core.Onboarding.canStart(true, true, true, false, true),
+                    "Pending restoration must remain protected");
+        });
         test("parcel parser decodes one and two code units per word", () -> {
             String a = "Result: Parcel( 00000000 00000003 00300031 00000030 '........1.0.0...')";
             check("100".equals(BridgeClient.decodeParcelString(a)), "Did not decode 100");
@@ -86,7 +94,14 @@ public final class PermissionTests extends Instrumentation {
             check(!app.bridge.ready(), "Non-Titan emulator unexpectedly exposed agui_common");
             check(app.bridge.status().contains("agui_common"), "Failure did not identify agui_common");
         });
-        test("production screen has no diagnostic hardware controls", () -> {
+        test("production screen has exactly three setup steps and no consumer test controls", () -> {
+            int[] headings = {com.everyonesniche.nightkeys.R.string.step_install,
+                    com.everyonesniche.nightkeys.R.string.step_connect,
+                    com.everyonesniche.nightkeys.R.string.step_enable};
+            for (int i = 0; i < headings.length; i++)
+                check(context.getString(headings[i]).startsWith(Integer.toString(i+1)), "Wrong step order");
+            check(context.getResources().getIdentifier("test", "id", context.getPackageName()) == 0, "Timed check remains");
+            check(context.getResources().getIdentifier("confirm_test", "id", context.getPackageName()) == 0, "Confirmation remains");
             check(context.getResources().getIdentifier("diag_hold", "id", context.getPackageName()) == 0,
                     "Diagnostic hold control leaked into the app");
             check(context.getResources().getIdentifier("diag_force_off", "id", context.getPackageName()) == 0,

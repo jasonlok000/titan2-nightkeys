@@ -38,6 +38,16 @@ public final class CoreTests {
     }
 
     public static void main(String[]args)throws Exception{
+        for (int flags = 0; flags < 32; flags++) {
+            boolean supported = (flags & 1) != 0, sensor = (flags & 2) != 0;
+            boolean connected = (flags & 4) != 0, running = (flags & 8) != 0;
+            boolean recovery = (flags & 16) != 0;
+            boolean result = com.everyonesniche.nightkeys.core.Onboarding.canStart(
+                    supported, sensor, connected, running, recovery);
+            if (result != (flags == 7)) throw new AssertionError("Wrong setup gate: " + flags);
+        }
+        System.out.println("PASS  all 32 onboarding states; no consumer-test gate");
+
         test("dark requires debounce",()->{var p=policy();p.sample(1,0);check(!p.shouldLight(),"lit immediately");p.tick(1199);check(!p.shouldLight(),"lit early");p.tick(1200);check(p.shouldLight(),"did not light");});
         test("bright turns off after shorter debounce",()->{var p=litPolicy();p.sample(20,2000);p.tick(2349);check(p.shouldLight(),"off early");p.tick(2350);check(!p.shouldLight(),"did not turn off");});
         test("hysteresis retains dark state",()->{var p=litPolicy();p.sample(12,2000);p.tick(10000);check(p.shouldLight(),"hysteresis lost");});

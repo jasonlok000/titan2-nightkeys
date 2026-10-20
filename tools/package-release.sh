@@ -52,7 +52,7 @@ meta={'version':os.environ['VERSION'],'versionCode':int(os.environ['CODE']),
       'commit':os.environ['GITHUB_SHA'],'workflowRun':os.environ['GITHUB_RUN_ID'],
       'apkSha256':hashlib.sha256(a.read_bytes()).hexdigest(),'certificateSha256':os.environ['CERT'],
       'validation':'JVM, Android build/lint, real non-root Shizuku emulator tests and website browser tests passed before signing.',
-      'hardwareStatus':'0.9.7 baseline owner-verified on Elite V02.00.04. This newly signed community build still needs its physical setup check.',
+      'hardwareStatus':'0.9.7 baseline owner-verified on Elite V02.00.04. Consumer setup is install, authorize, enable. No timed-check gate; expanded real-device validation is still encouraged.',
       'limitations':'Persistent large timeout; no independent watchdog; restore before removal.'}
 (p/'BUILD-INFO.json').write_text(json.dumps(meta,indent=2)+'\n')
 PY

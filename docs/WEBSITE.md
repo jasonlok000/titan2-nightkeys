@@ -25,3 +25,16 @@ Check 1440 px desktop, 390 px mobile and 320 px small mobile. The light buttons 
 GitHub Pages deploys `site/` through `.github/workflows/pages.yml`. An owner must enable **Settings → Pages → Build and deployment → Source: GitHub Actions** once. The normal workflow token cannot enable Pages administration by itself. Then use Actions → Deploy Titan Tools → Run workflow. Public URL: https://jasonlok000.github.io/titan2-nightkeys/ . A committed URL is not proof deployment succeeded; check the workflow and public page.
 
 Keep setup button labels synchronized with Android string resources. Update version.properties, release JSON and guide download links together for each release. Do not publish a fake release URL or claim an untested firmware works.
+
+## Titan 2 Elite illustration
+
+The interactive handset is an original inline SVG, not a manufacturer photograph.
+It follows the Elite's **117.8 × 75 mm** body proportions and **1080 × 1200** display,
+with a top-left punch-hole, three full ten-key rows plus the shift/navigation/space/fn
+row, and the red side shortcut button. The previous generic floating keycaps and
+invented printed branding have been removed. The UI inside the screen is illustrative.
+Reference: [Unihertz product page](https://www.unihertz.com/products/titan-2-elite),
+front view `T2US-E1-US-01.jpg`. No manufacturer artwork is redistributed.
+The `.key-legend`, `.key-alt`, `.key-icon` and `.elite-screen-content` classes expose
+lighting states to the existing demo. Test dark, bright, sleep and the light slider.
+Setup has exactly three `.step` sections; download and optional help are not steps.

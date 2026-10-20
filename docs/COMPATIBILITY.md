@@ -2,7 +2,7 @@
 
 | Device / software | Evidence | Status |
 |---|---|---|
-| Titan 2 Elite, Android 16, V02.00.04, main owner | Maintainer confirmed working 0.9.7-rc8 baseline after isolated hold/off/sensor/wake tests | Baseline physically verified; community beta must repeat check |
+| Titan 2 Elite, Android 16, V02.00.04, main owner | Maintainer confirmed working 0.9.7-rc8 baseline after isolated hold/off/sensor/wake tests | Baseline physically verified; community reports welcome, no onboarding test gate |
 | Android 16 emulator + official non-root Shizuku | CI tests shell UID, permission, service command, missing-vendor refusal and reconnect | Transport/test environment only; not Titan hardware |
 | Other Elite firmware | No reviewed report yet | Experimental; physical verification required |
 | Regular Titan 2, Titan Pocket, other models | Not supported by release identity gate | Unsupported |

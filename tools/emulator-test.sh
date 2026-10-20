@@ -17,7 +17,7 @@ test -n "$APK"
 adb shell /data/local/tmp/nightkeys-shizuku-start --apk="$APK" | tee build/evidence/shizuku-start.log
 COMPONENT='com.everyonesniche.nightkeys.debug.test/com.everyonesniche.nightkeys.bridge.PermissionTests'
 adb shell am instrument -w -r "$COMPONENT" | tee build/evidence/runtime-fresh.log
-grep -q 'NIGHTKEYS_SHELL_TESTS_PASSED count=7 scenario=fresh' build/evidence/runtime-fresh.log
+grep -q 'NIGHTKEYS_SHELL_TESTS_PASSED count=8 scenario=fresh' build/evidence/runtime-fresh.log
 ! grep -q 'NIGHTKEYS_SHELL_TESTS_FAILED' build/evidence/runtime-fresh.log
 adb shell am force-stop com.everyonesniche.nightkeys.debug
 adb shell am instrument -w -r -e scenario reconnect "$COMPONENT" | tee build/evidence/runtime-reconnect.log

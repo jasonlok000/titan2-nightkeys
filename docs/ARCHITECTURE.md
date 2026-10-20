@@ -41,3 +41,7 @@ A service restart recovers an outstanding original before claiming a new session
 Production UI is separate from historical test fixtures; no manual hold/off actions are shipped. Support reports are opt-in, read-only and local. APK startup on unsupported identity must not alter hardware. All hardware writes must stay behind explicit authorization, owner-profile/device checks and the existing session/recovery ownership model.
 
 Changes to these invariants require regression tests, command-trace review and a real-device report. An emulator has neither `agui_common` nor the Titan LEDs.
+
+## Onboarding (beta.2)
+
+Three steps: detect/install Shizuku, start/connect/authorize, enable. `Onboarding.canStart` checks supported identity, sensor presence, channel readiness and absence of an active session/pending recovery. It does not read a trial/calibration/verification flag. Legacy saved flags are ignored, never converted into evidence of hardware validation. There is no TEST service action or expiry timer. Android notification permission is requested as part of Enable. Core light thresholds, timing, screen gates, vendor transport and journal behavior are unchanged.

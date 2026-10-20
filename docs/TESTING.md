@@ -23,4 +23,4 @@ Use the candidate signed APK on a supported phone after restoring the previous v
 - Restart Shizuku, reboot the phone and open NightKeys; verify permission/resume guidance and no false success.
 - A firmware update requires repeating verification. Do not tick a failed physical-check box.
 
-For purposeful force-stop/helper-failure tests, know the recovery procedure first. These can leave a persistent override. Never clear data to hide a failure. The 90-second onboarding check is separate from the Enable NightKeys action.
+For purposeful force-stop/helper-failure tests, know the recovery procedure first. These can leave a persistent override. Never clear data to hide a failure. Consumer onboarding has no timed check. Enable NightKeys directly after Shizuku authorization; perform the hardware checks above as developer acceptance tests, not user prerequisites.

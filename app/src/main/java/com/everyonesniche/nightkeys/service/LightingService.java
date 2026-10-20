@@ -37,7 +37,6 @@ import java.util.concurrent.Executors;
 public final class LightingService extends Service implements SensorEventListener {
     public static final String START = "com.everyonesniche.nightkeys.START";
     public static final String STOP = "com.everyonesniche.nightkeys.STOP";
-    public static final String TEST = "com.everyonesniche.nightkeys.TEST";
     public static final String REFRESH = "com.everyonesniche.nightkeys.REFRESH";
     private NightKeysApp app;
     private HandlerThread thread;
@@ -49,8 +48,8 @@ public final class LightingService extends Service implements SensorEventListene
     private BacklightSession session;
     private LightPolicy policy;
     private final ExecutorService emergency = Executors.newSingleThreadExecutor();
-    private boolean registered, testing, stopping, screen, previousReady;
-    private long testEnd, lastPublish, lastRenew;
+    private boolean registered, stopping, screen, previousReady;
+    private long lastPublish, lastRenew;
     private String lastNotification = "";
     private boolean restoreOnly;
     private final Runnable connectionChanged = () -> {
@@ -73,9 +72,6 @@ public final class LightingService extends Service implements SensorEventListene
             } catch (Exception e) { fault(e); return; }
             scheduleHeartbeat();
         }
-    };
-    private final Runnable testExpiry = () -> {
-        if (testing && SystemClock.elapsedRealtime() >= testEnd) stopAndRestore("Test ended · original settings restored");
     };
     private final BroadcastReceiver screenReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -116,17 +112,11 @@ public final class LightingService extends Service implements SensorEventListene
             try {
                 if (STOP.equals(action)) { stopAndRestore("Original keyboard settings restored"); return; }
                 if (START.equals(action)) {
-                    if (!app.config.verified()) throw new IllegalStateException("Finish the firmware brightness and screen-off check first");
-                    testing = false; restoreOnly = false; app.config.wanted(true);
-                } else if (TEST.equals(action)) {
-                    if (!app.config.captured()) throw new IllegalStateException("Confirm the stock minimum brightness first");
-                    if (app.config.wanted()) throw new IllegalStateException("Stop automation before running a compatibility test");
-                    testing = true; restoreOnly = false; testEnd = SystemClock.elapsedRealtime() + 90_000;
-                    worker.removeCallbacks(testExpiry); worker.postDelayed(testExpiry,90_000);
+                    restoreOnly = false; app.config.wanted(true);
                 } else if (REFRESH.equals(action) && session.isPrepared()) {
                     session.apply(false); rebuildPolicy(); registerSensor(false); screenChanged(false); return;
                 }
-                if (!testing && !app.config.wanted()) restoreOnly = true;
+                if (!app.config.wanted()) restoreOnly = true;
                 reconcile();
             } catch (Exception e) { fault(e); }
         });
@@ -141,17 +131,14 @@ public final class LightingService extends Service implements SensorEventListene
                 publish("Waiting for Shizuku", app.bridge.status(), true);
                 app.bridge.connect(); return;
             }
-            if (restoreOnly || (!testing && !app.config.wanted())) { stopAndRestore("Original keyboard settings restored"); return; }
+            if (restoreOnly || !app.config.wanted()) { stopAndRestore("Original keyboard settings restored"); return; }
             if (!Config.supportedIdentity()) throw new IllegalStateException("This device is not identified as a Titan 2 Elite in the owner profile");
             if (light == null) throw new IllegalStateException("No ambient-light sensor is available");
-            if (!app.config.captured() || (!testing && !app.config.verified()))
-                throw new IllegalStateException("Firmware changed or setup is incomplete. Confirm the stock brightness and verify the LEDs again");
             // If a previous process died mid-session, finish() replays the durable
             // journal before a new session is allowed to claim ownership.
             if (session.isPrepared()) session.finish();
             session.prepare();
             app.config.error("");
-            if (testing) app.config.testStarted();
             rebuildPolicy(); screen = false;
             screenChanged(false);
         } catch (Exception e) { fault(e); }
@@ -162,7 +149,6 @@ public final class LightingService extends Service implements SensorEventListene
     }
     private void screenChanged(boolean forceOff) {
         if (stopping || !session.isPrepared() || policy == null) return;
-        if (testing && SystemClock.elapsedRealtime() >= testEnd) { stopAndRestore("Test ended · original settings restored"); return; }
         boolean current = !forceOff && AndroidPort.screenOn(this);
         boolean changed = current != screen;
         screen = current; policy.setInteractive(current);
@@ -190,7 +176,6 @@ public final class LightingService extends Service implements SensorEventListene
     @Override public void onSensorChanged(SensorEvent event) {
         if (stopping || !registered || !session.isPrepared() || policy == null) return;
         if (!AndroidPort.screenOn(this)) { screenChanged(true); return; }
-        if (testing && SystemClock.elapsedRealtime() >= testEnd) { testExpiry.run(); return; }
         float value = event.values.length == 0 ? Float.NaN : event.values[0];
         policy.sample(value,SystemClock.elapsedRealtime()); updateOutput(false);
     }
@@ -228,9 +213,9 @@ public final class LightingService extends Service implements SensorEventListene
         long now = SystemClock.elapsedRealtime();
         if (!force && now-lastPublish < 300) return;
         lastPublish = now;
-        app.publish(new RuntimeState(true,app.bridge.ready() && policy != null && policy.shouldLight() && AndroidPort.screenOn(this) && session != null && session.isLit(),testing,
-                policy == null ? Float.NaN : policy.lux(), title,detail,testEnd));
-        String notification = testing ? "Compatibility test · " + detail : detail;
+        app.publish(new RuntimeState(true,app.bridge.ready() && policy != null && policy.shouldLight() && AndroidPort.screenOn(this) && session != null && session.isLit(),
+                policy == null ? Float.NaN : policy.lux(), title,detail));
+        String notification = detail;
         if (!Objects.equals(lastNotification,notification)) {
             lastNotification = notification;
             if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
@@ -238,14 +223,14 @@ public final class LightingService extends Service implements SensorEventListene
         }
     }
     private void stopAndRestore(String completeMessage) {
-        testing = false; restoreOnly = true;
+        restoreOnly = true;
         app.config.wanted(false);
-        unregisterSensor(); worker.removeCallbacks(heartbeat); worker.removeCallbacks(transition); worker.removeCallbacks(testExpiry);
+        unregisterSensor(); worker.removeCallbacks(heartbeat); worker.removeCallbacks(transition);
         if (policy != null) policy.setEnabled(false);
         try {
             session.finish();
             stopping = true; app.config.error("");
-            app.publish(new RuntimeState(false,false,false,Float.NaN,"Automatic lighting paused",completeMessage,0));
+            app.publish(new RuntimeState(false,false,Float.NaN,"Automatic lighting paused",completeMessage));
             stopForeground(STOP_FOREGROUND_REMOVE); stopSelf();
         } catch (Exception e) {
             if (port != null) port.emergencyOff();
@@ -255,14 +240,14 @@ public final class LightingService extends Service implements SensorEventListene
     }
     private void fault(Exception error) {
         app.config.error(clean(error));
-        testing = false; restoreOnly = true;
+        restoreOnly = true;
         try { app.config.wanted(false); } catch (Exception ignored) { }
-        unregisterSensor(); worker.removeCallbacks(heartbeat); worker.removeCallbacks(transition); worker.removeCallbacks(testExpiry);
+        unregisterSensor(); worker.removeCallbacks(heartbeat); worker.removeCallbacks(transition);
         if (policy != null) policy.setEnabled(false);
         if (app.journal.pending() && port != null) port.emergencyOff();
         try {
             session.finish(); stopping = true;
-            app.publish(new RuntimeState(false,false,false,Float.NaN,"Lighting paused",clean(error),0));
+            app.publish(new RuntimeState(false,false,Float.NaN,"Lighting paused",clean(error)));
             stopForeground(STOP_FOREGROUND_REMOVE); stopSelf();
         } catch (Exception restoreError) {
             publish("Restoration needs attention", clean(error) + " · " + clean(restoreError),true);
@@ -280,7 +265,7 @@ public final class LightingService extends Service implements SensorEventListene
             unregisterSensor();
             if (!stopping) {
                 try { session.finish(); } catch (Exception e) { if (port != null) port.emergencyOff(); app.config.error("Recovery pending: " + clean(e)); }
-                app.publish(new RuntimeState(false,false,false,Float.NaN,"Service stopped","Reopen NightKeys to resume or restore.",0));
+                app.publish(new RuntimeState(false,false,Float.NaN,"Service stopped","Reopen NightKeys to resume or restore."));
             }
             thread.quitSafely();
         });

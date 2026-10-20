@@ -49,3 +49,11 @@ assert len(set(methods))==6 and '16777114' in methods
 print(f'PASS: {parsed} XML files parsed; all local resource references resolved.')
 print('PASS: source manifest permissions, service exposure, AIDL transaction ids and forbidden-pattern checks.')
 print('NOT RUN: AAPT2, Android Lint, dependency resolution, Android Java type checking, APK packaging or device testing.')
+
+# A completed trial/calibration must never become a prerequisite again.
+for file in main.rglob('*.java'):
+    text=file.read_text()
+    assert not any(p in text for p in ('config.verified(', 'confirmStockMinimum', 'markVerified', 'testExpiry', 'LightingService.TEST')),file
+for name in ('test', 'confirm_test', 'diag_hold', 'diag_force_off'):
+    assert name not in ids, 'Consumer trial control leaked: '+name
+print('PASS: no consumer test, calibration gate or 90-second expiry in the shipping app.')

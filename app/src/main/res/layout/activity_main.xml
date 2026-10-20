@@ -13,30 +13,37 @@
             <TextView android:id="@+id/status_title" style="@style/SectionTitle" android:text="@string/welcome_title" android:accessibilityLiveRegion="polite"/>
             <TextView android:id="@+id/status_detail" style="@style/Body" android:text="@string/welcome_detail"/>
             <TextView android:id="@+id/lux_value" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="18dp" android:text="@string/unknown_lux" android:textColor="@color/accent" android:textSize="30sp"/>
+                android:layout_marginTop="12dp" android:text="@string/unknown_lux" android:textColor="@color/accent" android:textSize="26sp"/>
             <com.everyonesniche.nightkeys.ui.LuxMeterView android:id="@+id/lux_meter"
-                android:layout_width="match_parent" android:layout_height="70dp" android:importantForAccessibility="no"/>
-            <Button android:id="@+id/main_action" style="@style/PrimaryButton" android:text="@string/enable"/>
+                android:layout_width="match_parent" android:layout_height="54dp" android:importantForAccessibility="no"/>
             <TextView android:id="@+id/error" style="@style/Body" android:textColor="@color/warning" android:visibility="gone" android:accessibilityLiveRegion="polite"/>
         </LinearLayout>
-        <LinearLayout android:id="@+id/setup_card" style="@style/Card">
-            <TextView style="@style/SectionTitle" android:text="@string/setup_title"/>
-            <TextView style="@style/Body" android:text="@string/setup_detail"/>
-            <TextView android:id="@+id/access_label" style="@style/Body" android:text="@string/access_initial"/>
-            <Button android:id="@+id/open_shizuku" style="@style/SecondaryButton" android:text="@string/open_shizuku"/>
-            <Button android:id="@+id/authorize" style="@style/PrimaryButton" android:text="@string/authorize"/>
-            <TextView style="@style/Body" android:text="@string/brightness_detail"/>
-            <Button android:id="@+id/open_keyboard" style="@style/SecondaryButton" android:text="@string/open_keyboard"/>
-            <Button android:id="@+id/test" style="@style/SecondaryButton" android:text="@string/begin_check"/>
-            <TextView style="@style/Body" android:text="@string/test_temporary"/>
-            <Button android:id="@+id/confirm_test" style="@style/PrimaryButton" android:text="@string/save_check_title" android:visibility="gone"/>
+        <LinearLayout style="@style/Card">
+            <TextView style="@style/SectionTitle" android:text="@string/step_install"/>
+            <TextView android:id="@+id/install_label" style="@style/Body" android:text="@string/install_detail"/>
+            <Button android:id="@+id/install_shizuku" style="@style/SecondaryButton" android:text="@string/install_shizuku"/>
         </LinearLayout>
         <LinearLayout style="@style/Card">
-            <TextView style="@style/SectionTitle" android:text="@string/threshold_title"/>
+            <TextView style="@style/SectionTitle" android:text="@string/step_connect"/>
+            <TextView android:id="@+id/access_label" style="@style/Body" android:text="@string/access_initial" android:accessibilityLiveRegion="polite"/>
+            <Button android:id="@+id/authorize" style="@style/PrimaryButton" android:text="@string/authorize"/>
+            <Button android:id="@+id/open_shizuku" style="@style/SecondaryButton" android:text="@string/open_shizuku"/>
+            <Button android:id="@+id/guide" style="@style/SecondaryButton" android:text="@string/guide"/>
+        </LinearLayout>
+        <LinearLayout style="@style/Card">
+            <TextView style="@style/SectionTitle" android:text="@string/step_enable"/>
+            <TextView android:id="@+id/enable_detail" style="@style/Body" android:text="@string/enable_waiting"/>
+            <Button android:id="@+id/main_action" style="@style/PrimaryButton" android:text="@string/enable"/>
+            <TextView style="@style/Body" android:text="@string/enable_note"/>
+        </LinearLayout>
+        <LinearLayout style="@style/Card">
+            <TextView style="@style/SectionTitle" android:text="@string/preferences_title"/>
             <TextView android:id="@+id/threshold_label" style="@style/Body" android:text="@string/threshold_initial" android:labelFor="@id/threshold"/>
             <SeekBar android:id="@+id/threshold" android:layout_width="match_parent" android:layout_height="56dp"
                 android:contentDescription="@string/threshold_title" android:progressTint="@color/accent" android:thumbTint="@color/accent"/>
             <TextView style="@style/Body" android:text="@string/threshold_detail"/>
+            <TextView style="@style/Body" android:text="@string/brightness_detail"/>
+            <Button android:id="@+id/open_keyboard" style="@style/SecondaryButton" android:text="@string/open_keyboard"/>
         </LinearLayout>
         <LinearLayout style="@style/Card">
             <TextView style="@style/SectionTitle" android:text="@string/help_title"/>
@@ -44,8 +51,6 @@
                 android:minHeight="56dp" android:text="@string/resume_boot" android:textColor="@color/text" android:textSize="14sp"/>
             <TextView style="@style/Body" android:text="@string/restart_detail"/>
             <Button android:id="@+id/battery" style="@style/SecondaryButton" android:text="@string/battery"/>
-            <Button android:id="@+id/guide" style="@style/SecondaryButton" android:text="@string/guide"/>
-            <Button android:id="@+id/setup_again" style="@style/SecondaryButton" android:text="@string/setup_again"/>
             <Button android:id="@+id/support" style="@style/SecondaryButton" android:text="@string/copy_report"/>
             <TextView style="@style/Body" android:text="@string/safety_note" android:textColor="@color/warning"/>
         </LinearLayout>

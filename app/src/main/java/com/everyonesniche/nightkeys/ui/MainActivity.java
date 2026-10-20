@@ -17,13 +17,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
 import android.provider.Settings;
 import android.view.View;
 import android.view.WindowInsets;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -33,6 +31,8 @@ import com.everyonesniche.nightkeys.Config;
 import com.everyonesniche.nightkeys.NightKeysApp;
 import com.everyonesniche.nightkeys.R;
 import com.everyonesniche.nightkeys.RuntimeState;
+import com.everyonesniche.nightkeys.core.Onboarding;
+import rikka.shizuku.Shizuku;
 import com.everyonesniche.nightkeys.hardware.AndroidPort;
 import com.everyonesniche.nightkeys.service.LightingService;
 import java.io.InputStream;
@@ -51,11 +51,11 @@ public final class MainActivity extends Activity implements SensorEventListener 
     private NightKeysApp app;
     private SensorManager sensors;
     private Sensor light;
-    private boolean resumed, previewRegistered, dragging, showSetup;
+    private boolean resumed, previewRegistered, dragging;
     private float previewLux = Float.NaN;
     private String pendingAction;
-    private TextView statusTitle, statusDetail, luxValue, thresholdLabel, accessLabel, error;
-    private Button primary, test, confirm;
+    private TextView statusTitle, statusDetail, luxValue, thresholdLabel, accessLabel, error, installLabel, enableDetail;
+    private Button primary, install, authorize;
     private SeekBar threshold;
     private LuxMeterView meter;
     private final Runnable countdown = new Runnable() {
@@ -87,8 +87,10 @@ public final class MainActivity extends Activity implements SensorEventListener 
         accessLabel = findViewById(R.id.access_label);
         error = findViewById(R.id.error);
         primary = findViewById(R.id.main_action);
-        test = findViewById(R.id.test);
-        confirm = findViewById(R.id.confirm_test);
+        install = findViewById(R.id.install_shizuku);
+        authorize = findViewById(R.id.authorize);
+        installLabel = findViewById(R.id.install_label);
+        enableDetail = findViewById(R.id.enable_detail);
         threshold = findViewById(R.id.threshold);
         meter = findViewById(R.id.lux_meter);
         ((TextView) findViewById(R.id.version)).setText(getString(R.string.version_label, BuildConfig.VERSION_NAME));
@@ -96,21 +98,14 @@ public final class MainActivity extends Activity implements SensorEventListener 
             if (app.state.running || app.journal.pending()) command(LightingService.STOP);
             else requestVisibleService(LightingService.START);
         });
-        findViewById(R.id.authorize).setOnClickListener(v -> app.bridge.authorize());
-        findViewById(R.id.open_shizuku).setOnClickListener(v -> {
-            Intent launch = getPackageManager().getLaunchIntentForPackage("moe.shizuku.privileged.api");
-            open(launch == null ? new Intent(Intent.ACTION_VIEW, Uri.parse("https://shizuku.rikka.app/download/")) : launch);
+        install.setOnClickListener(v -> open(new Intent(Intent.ACTION_VIEW,
+                Uri.parse("https://shizuku.rikka.app/download/"))));
+        authorize.setOnClickListener(v -> {
+            if (!shizukuInstalled() || !shizukuRunning()) openShizuku();
+            else app.bridge.authorize();
         });
+        findViewById(R.id.open_shizuku).setOnClickListener(v -> openShizuku());
         findViewById(R.id.open_keyboard).setOnClickListener(v -> openKeyboardSettings());
-        findViewById(R.id.setup_again).setOnClickListener(v -> { showSetup = !showSetup; render(); });
-        test.setOnClickListener(v -> new AlertDialog.Builder(this)
-                .setTitle(R.string.check_title).setMessage(R.string.check_instructions)
-                .setNegativeButton(R.string.cancel, null)
-                .setPositiveButton(R.string.begin_check, (dialog, which) -> {
-                    try { app.config.confirmStockMinimum(); requestVisibleService(LightingService.TEST); }
-                    catch (RuntimeException e) { toast(e.getMessage()); }
-                }).show());
-        confirm.setOnClickListener(v -> confirmPhysicalCheck());
         findViewById(R.id.guide).setOnClickListener(v -> open(new Intent(Intent.ACTION_VIEW, Uri.parse(GUIDE))));
         findViewById(R.id.battery).setOnClickListener(v -> open(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                 Uri.parse("package:" + getPackageName()))));
@@ -159,13 +154,15 @@ public final class MainActivity extends Activity implements SensorEventListener 
         boolean active = state.running;
         boolean pending = app.journal.pending();
         boolean supported = Config.supportedIdentity() && light != null;
+        boolean installed = shizukuInstalled();
+        boolean server = shizukuRunning();
         if (!supported) {
             statusTitle.setText(R.string.unsupported_title);
             statusDetail.setText(R.string.unsupported_detail);
         } else if (!active && pending) {
             statusTitle.setText(R.string.restore_title);
             statusDetail.setText(R.string.restore_detail);
-        } else if (!active && app.config.verified()) {
+        } else if (!active && app.bridge.ready()) {
             statusTitle.setText(R.string.ready_title);
             statusDetail.setText(R.string.ready_detail);
         } else if (!active) {
@@ -173,20 +170,23 @@ public final class MainActivity extends Activity implements SensorEventListener 
             statusDetail.setText(R.string.welcome_detail);
         } else {
             statusTitle.setText(state.title);
-            if (state.testing) {
-                long seconds = Math.max(0, (state.testEndMs - SystemClock.elapsedRealtime() + 999) / 1000);
-                statusDetail.setText(getString(R.string.check_countdown, seconds, state.detail));
-            } else statusDetail.setText(state.detail);
+            statusDetail.setText(state.detail);
         }
         primary.setText(active || pending ? R.string.stop_restore : R.string.enable);
-        primary.setEnabled(active || pending || (supported && app.bridge.ready() && app.config.verified()));
+        primary.setEnabled(active || pending || Onboarding.canStart(Config.supportedIdentity(),
+                light != null, app.bridge.ready(), active, pending));
         primary.setAlpha(primary.isEnabled() ? 1f : .5f);
-        accessLabel.setText(app.bridge.status());
-        boolean setup = !app.config.verified() || showSetup;
-        findViewById(R.id.setup_card).setVisibility(setup ? View.VISIBLE : View.GONE);
-        test.setEnabled(supported && app.bridge.ready() && !active && !pending);
-        confirm.setVisibility(app.config.hasTest() && !app.config.verified() ? View.VISIBLE : View.GONE);
-        confirm.setEnabled(supported && app.config.hasTest());
+        installLabel.setText(installed ? R.string.shizuku_installed : R.string.install_detail);
+        install.setVisibility(installed ? View.GONE : View.VISIBLE);
+        accessLabel.setText(!installed ? getString(R.string.install_first) : !server
+                ? getString(R.string.start_shizuku_detail) : app.bridge.status());
+        authorize.setText(app.bridge.ready() ? R.string.reconnect
+                : server ? R.string.authorize : R.string.start_shizuku);
+        authorize.setEnabled(installed && !active && !pending);
+        findViewById(R.id.open_shizuku).setVisibility(installed ? View.VISIBLE : View.GONE);
+        enableDetail.setText(active ? R.string.enabled_detail : pending ? R.string.restore_detail
+                : app.bridge.ready() ? R.string.enable_ready : R.string.enable_waiting);
+
         error.setText(app.config.lastError());
         error.setVisibility(app.config.lastError().isBlank() ? View.GONE : View.VISIBLE);
         if (!dragging) {
@@ -218,10 +218,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
     private void requestVisibleService(String action) {
         if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             pendingAction = action;
-            new AlertDialog.Builder(this).setTitle(R.string.notification_title)
-                    .setMessage(R.string.notification_detail).setNegativeButton(R.string.cancel, (d,w) -> pendingAction = null)
-                    .setPositiveButton(R.string.continue_label, (d,w) -> requestPermissions(
-                            new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATIONS)).show();
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATIONS);
         } else command(action);
     }
     @Override public void onRequestPermissionsResult(int request, String[] permissions, int[] grants) {
@@ -235,34 +232,21 @@ public final class MainActivity extends Activity implements SensorEventListener 
         try { LightingService.command(this, action); main.postDelayed(this::render, 150); }
         catch (RuntimeException e) { app.config.error(e.getMessage()); render(); }
     }
-    private void confirmPhysicalCheck() {
-        LinearLayout box = new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL);
-        int padding = Math.round(20 * getResources().getDisplayMetrics().density);
-        box.setPadding(padding, padding / 2, padding, padding / 2);
-        int[] labels = {R.string.check_brightness, R.string.check_stays, R.string.check_screen, R.string.check_bright};
-        CheckBox[] checks = new CheckBox[labels.length];
-        for (int i = 0; i < labels.length; i++) {
-            checks[i] = new CheckBox(this); checks[i].setText(labels[i]); checks[i].setMinHeight(Math.round(48 * getResources().getDisplayMetrics().density));
-            box.addView(checks[i]);
-        }
-        ScrollView scroll = new ScrollView(this); scroll.addView(box);
-        AlertDialog dialog = new AlertDialog.Builder(this).setTitle(R.string.save_check_title)
-                .setMessage(R.string.save_check_detail).setView(scroll).setNegativeButton(R.string.cancel, null)
-                .setPositiveButton(R.string.save_check, null).create();
-        dialog.setOnShowListener(d -> {
-            Button save = dialog.getButton(AlertDialog.BUTTON_POSITIVE); save.setEnabled(false);
-            for (CheckBox check : checks) check.setOnCheckedChangeListener((button, checked) -> {
-                boolean all = true; for (CheckBox c : checks) all &= c.isChecked(); save.setEnabled(all);
-            });
-            save.setOnClickListener(v -> {
-                try {
-                    app.config.markVerified(); showSetup = false;
-                    if (app.state.running || app.journal.pending()) command(LightingService.STOP);
-                    dialog.dismiss(); toast(getString(R.string.now_enable)); render();
-                } catch (RuntimeException e) { toast(e.getMessage()); }
-            });
-        });
-        dialog.show();
+    private boolean shizukuInstalled() {
+        try {
+            getPackageManager().getApplicationInfo("moe.shizuku.privileged.api",
+                    PackageManager.ApplicationInfoFlags.of(0));
+            return true;
+        } catch (PackageManager.NameNotFoundException e) { return false; }
+    }
+    private boolean shizukuRunning() {
+        try { return Shizuku.pingBinder(); }
+        catch (RuntimeException e) { return false; }
+    }
+    private void openShizuku() {
+        Intent launch = getPackageManager().getLaunchIntentForPackage("moe.shizuku.privileged.api");
+        open(launch == null ? new Intent(Intent.ACTION_VIEW,
+                Uri.parse("https://shizuku.rikka.app/download/")) : launch);
     }
     private void openKeyboardSettings() {
         try { startActivity(new Intent().setClassName("com.agui.settings", "com.agui.settings.touchpad.KeyboardLEDSettingsActivity")); }
@@ -276,7 +260,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
                 + "\nSensor: " + (light == null ? "none" : light.getName())
                 + "\nLux: " + (app.state.running ? app.state.lux : previewLux)
                 + "\nThresholds: " + app.config.threshold() + " / " + app.config.offThreshold()
-                + "\nSetup checked: " + app.config.verified() + "\nAutomation requested: " + app.config.wanted()
+                + "\nAutomation requested: " + app.config.wanted()
                 + "\nService running: " + app.state.running + "\nState: " + app.state.title + " / " + app.state.detail
                 + "\nRecovery: " + app.journal.export() + "\nLast error: " + app.config.lastError() + "\n";
         io.execute(() -> {
