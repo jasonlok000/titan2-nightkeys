@@ -16,7 +16,7 @@ class Page(HTMLParser):
         for key in ('href','src'):
             if key in a:self.links.append(a[key])
         if tag=='script' and 'src' in a:self.scripts.append(a['src'])
-pages={p.relative_to(site).as_posix():Page(p.read_text()) for p in site.glob('*.html')}
+pages={p.relative_to(site).as_posix():Page(p.read_text(encoding='utf-8')) for p in site.glob('*.html')}
 for name,p in pages.items():
     for url in p.links:
         u=urlsplit(url)
@@ -31,7 +31,7 @@ for name,p in pages.items():
             parsed=pages.get(target.relative_to(site).as_posix())
             assert parsed and u.fragment in parsed.ids,f'{name}: missing anchor {url}'
     assert all(not urlsplit(s).netloc for s in p.scripts),'External script in '+name
-catalog=json.loads((site/'data/tools.json').read_text())
+catalog=json.loads((site/'data/tools.json').read_text(encoding='utf-8'))
 assert catalog['schemaVersion']==1
 ids=set()
 for tool in catalog['tools']:
@@ -39,9 +39,9 @@ for tool in catalog['tools']:
     ids.add(tool['id']); u=urlsplit(tool['source'])
     assert u.scheme=='https' and u.netloc=='github.com'
     assert all(isinstance(tool[k],str) and tool[k] for k in ('name','description','status','guide','platform'))
-release=json.loads((site/'data/release.json').read_text())
-version=dict(line.split('=',1) for line in (root/'version.properties').read_text().splitlines() if '=' in line)
+release=json.loads((site/'data/release.json').read_text(encoding='utf-8'))
+version=dict(line.split('=',1) for line in (root/'version.properties').read_text(encoding='utf-8').splitlines() if '=' in line)
 assert release['version']==version['versionName']
 assert release['tag']=='v'+release['version']
-assert f"NightKeys-{release['version']}.apk" in (site/'setup.html').read_text()
+assert f"NightKeys-{release['version']}.apk" in (site/'setup.html').read_text(encoding='utf-8')
 print(f'PASS: {len(pages)} static pages; internal links, anchors, catalogue, local scripts and release identity.')

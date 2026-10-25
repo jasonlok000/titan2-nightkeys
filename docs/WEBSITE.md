@@ -10,7 +10,7 @@ python3 tools/check-site.py
 python3 tools/test-site.py
 ```
 
-`index.html`: short showcase and catalogue. `setup.html`: eight detailed steps with optional local checklist. `contribute.html`: non-code, code and new-tool entry points. `privacy.html`: app/site privacy. CSS tokens are at the top of `assets/styles.css`. `assets/site.js` controls only illustration/checklist/catalogue. No third-party fonts, analytics or live phone APIs are used.
+`index.html`: short showcase and catalogue. `setup.html`: a download start card, exactly three `.step` sections (step 2 is split into parts A–D: Developer options, Wireless debugging, pairing, start & connect), each ending in a “You should now see” checkpoint, then a “Stuck?” help section. The restart reminder sits at the top. Optional local checklist. `contribute.html`: non-code, code and new-tool entry points. `privacy.html`: app/site privacy. CSS tokens are at the top of `assets/styles.css`. `assets/site.js` controls only illustration/checklist/catalogue. No third-party fonts, analytics or live phone APIs are used.
 
 ## Adding tools
 
@@ -18,7 +18,7 @@ Propose scope first. Add an object to `data/tools.json`: unique lowercase `id`, 
 
 ## QA
 
-Check 1440 px desktop, 390 px mobile and 320 px small mobile. The light buttons and slider must visibly change the keyboard; screen off must darken the screen and keys. Check keyboard navigation, focus, reduced motion, internal anchors, no horizontal scroll, no console errors, checklist persistence/reset, and the guide with JavaScript disabled. The catalogue uses textContent and validates source links, not arbitrary HTML.
+Check 1440 px desktop, 390 px mobile, 320 px small mobile and the Titan 2 Elite's 9:10 screen (360×400, 432×480 and a shorter 360×330 for browser bars). On short, wide screens (`max-width:760px` and `min-aspect-ratio:3/4`) the phone and its controls sit side by side and the whole demo must fit one screen. The Dark room / Bright room buttons must visibly change both the room and the keyboard light. Check keyboard navigation, focus, reduced motion, internal anchors, no horizontal scroll, no console errors, checklist persistence/reset, and the guide with JavaScript disabled. The catalogue uses textContent and validates source links, not arbitrary HTML.
 
 ## Hosting
 
@@ -36,5 +36,5 @@ invented printed branding have been removed. The UI inside the screen is illustr
 Reference: [Unihertz product page](https://www.unihertz.com/products/titan-2-elite),
 front view `T2US-E1-US-01.jpg`. No manufacturer artwork is redistributed.
 The `.key-legend`, `.key-alt`, `.key-icon` and `.elite-screen-content` classes expose
-lighting states to the existing demo. Test dark, bright, sleep and the light slider.
+lighting states to the existing demo. The demo offers only Dark room and Bright room (the app still turns the light off with the screen; the demo just doesn't show it). `--day` on `.demo` cross-fades the night and day backgrounds and `data-room` reports which one is showing. It auto-switches every few seconds until the visitor interacts or pauses it, and never auto-switches with reduced motion. Without JavaScript it shows the dark room with no controls.
 Setup has exactly three `.step` sections; download and optional help are not steps.

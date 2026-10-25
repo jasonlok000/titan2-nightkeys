@@ -9,14 +9,18 @@ if (phone) {
   const screenTitle = document.querySelector('.screen-title');
   const screenCaption = document.querySelector('.screen-caption');
   const presets = [...document.querySelectorAll('[data-preset]')];
-  let screenOn = true;
+  const demo = phone.closest('.demo');
+  const autoButton = document.querySelector('#demo-auto');
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const roomWord = lux => lux < 5 ? 'Dark' : lux < 10 ? 'Dim' : lux < 15 ? 'In between' : 'Bright';
+  // Same as the app's defaults: on below 10 lux, off at 15 lux, so it never flickers.
   let lit = true;
   let offTimer;
   function render() {
     const lux = Number(slider.value);
     clearTimeout(offTimer);
-    const desired = screenOn && (lit ? lux < 15 : lux < 10);
-    if (lit && !desired && screenOn) {
+    const desired = lit ? lux < 15 : lux < 10;
+    if (lit && !desired) {
       offTimer = setTimeout(() => { lit = false; paint(); }, 250);
     } else {
       lit = desired;
@@ -25,28 +29,47 @@ if (phone) {
   }
   function paint() {
     const lux = Number(slider.value);
-    phone.dataset.lit = String(lit && screenOn);
-    phone.dataset.screen = String(screenOn);
-    output.value = `${lux} lux`;
-    slider.setAttribute('aria-valuetext', `${lux} lux`);
-    status.textContent = !screenOn ? 'Screen off · keyboard off' : lit ? 'Dark room · keyboard on' : 'Bright enough · keyboard off';
+    const day = Math.min(1, Math.max(0, (lux - 3) / 17));
+    demo.style.setProperty('--day', day.toFixed(2));
+    demo.dataset.room = day >= .5 ? 'bright' : 'dark';
+    phone.dataset.lit = String(lit);
+    output.value = roomWord(lux);
+    slider.setAttribute('aria-valuetext', roomWord(lux));
+    const room = lux < 10 ? 'Dark room' : lux < 15 ? 'Getting brighter' : 'Bright room';
+    status.textContent = `${room} · keyboard light ${lit ? 'on' : 'off'}`;
     screenTitle.textContent = lit ? 'NightKeys' : 'Daylight';
     screenCaption.textContent = lit ? 'A little light. Just enough.' : 'No extra light needed.';
     for (const button of presets) {
-      const selected = button.dataset.preset === 'sleep' ? !screenOn
-        : button.dataset.preset === 'dark' ? screenOn && lux < 10 : screenOn && lux >= 15;
+      const selected = button.dataset.preset === 'dark' ? lux < 10 : lux >= 15;
       button.setAttribute('aria-pressed', String(selected));
     }
   }
-  slider.addEventListener('input', () => { screenOn = true; render(); });
+  // Gentle tour between the two rooms until the visitor takes over.
+  let autoTimer;
+  let autoOn = !reducedMotion.matches;
+  let visible = true;
+  function schedule() {
+    clearTimeout(autoTimer);
+    autoButton.textContent = autoOn ? 'Pause auto-switch' : 'Play auto-switch';
+    if (!autoOn || !visible || document.hidden) return;
+    autoTimer = setTimeout(() => {
+      slider.value = Number(slider.value) < 15 ? '30' : '3';
+      render(); schedule();
+    }, 3500);
+  }
+  function stopAuto() { autoOn = false; schedule(); }
+  slider.addEventListener('input', () => { stopAuto(); render(); });
   presets.forEach(button => button.addEventListener('click', () => {
-    screenOn = button.dataset.preset !== 'sleep';
-    if (button.dataset.preset === 'dark') slider.value = '3';
-    if (button.dataset.preset === 'bright') slider.value = '30';
-    if (!screenOn) lit = false;
+    stopAuto();
+    slider.value = button.dataset.preset === 'dark' ? '3' : '30';
     render();
   }));
-  render();
+  autoButton.addEventListener('click', () => { autoOn = !autoOn; schedule(); });
+  document.addEventListener('visibilitychange', schedule);
+  if ('IntersectionObserver' in window) new IntersectionObserver(entries => {
+    visible = entries[0].isIntersecting; schedule();
+  }).observe(demo);
+  render(); schedule();
 }
 // Optional setup progress is stored only on this browser, never submitted.
 const checks = [...document.querySelectorAll('[data-step-check]')];
