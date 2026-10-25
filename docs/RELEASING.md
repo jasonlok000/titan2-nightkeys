@@ -18,6 +18,15 @@ python3 tools/install-signing-secrets.py /absolute/path/to/private-backup
 
 The script sends the keystore and passwords through stdin, not printed command-line arguments. Review it first. It sets NIGHTKEYS_KEYSTORE_BASE64, NIGHTKEYS_STORE_PASSWORD, NIGHTKEYS_KEY_ALIAS and NIGHTKEYS_KEY_PASSWORD for this repo. No one needs to paste credentials into a chat. After bootstrap, the public signing certificate is the identity pin; future publishing refuses a mismatch or missing secrets.
 
+## Key replacement (2026-10-25)
+
+The original permanent key and its encrypted-backup recipient key were lost. Beta.3 is
+signed with a replacement key created on the maintainer's computer. Its PKCS12 keystore
+and passwords are in the maintainer's private backup (never committed) and in the four
+`NIGHTKEYS_*` repository secrets, so `release.yml` signs releases in CI. The pin in
+`.signing/certificate.sha256` is the replacement certificate. Users of beta.1/beta.2
+must Stop & restore, uninstall and reinstall once. Do not replace this key again.
+
 ## Subsequent releases
 
 1. Finish CI and real-device acceptance from TESTING.md. Do not treat emulator results as Titan hardware coverage.

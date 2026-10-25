@@ -4,11 +4,11 @@
 
 NightKeys is a small, open-source Android utility for the **Unihertz Titan 2 Elite**. It keeps the physical keyboard lit in darkness, turns it off in a bright room, and explicitly turns it off when the screen sleeps. Your chosen stock keyboard brightness and keyboard app stay unchanged.
 
-[Get the community beta](https://github.com/jasonlok000/titan2-nightkeys/releases/tag/v1.0.0-beta.2) · [Visual website & demo](https://jasonlok000.github.io/titan2-nightkeys/) · [Every-tap setup guide](https://jasonlok000.github.io/titan2-nightkeys/setup.html) · [Contribute](CONTRIBUTING.md)
+[Get the community beta](https://github.com/jasonlok000/titan2-nightkeys/releases/tag/v1.0.0-beta.3) · [Visual website & demo](https://jasonlok000.github.io/titan2-nightkeys/) · [Every-tap setup guide](https://jasonlok000.github.io/titan2-nightkeys/setup.html) · [Contribute](CONTRIBUTING.md)
 
 ## Before installing
 
-This is **1.0.0-beta.2**, not a promise of compatibility with every Titan firmware. The working 0.9.7 lighting baseline was confirmed on a Titan 2 Elite running Android 16 / V02.00.04. This community build preserves that timing and vendor-control algorithm, with a new UI, normal source compilation and permanent release signing. The newly signed build still needs its physical check on each device.
+This is **1.0.0-beta.3**, not a promise of compatibility with every Titan firmware. The working 0.9.7 lighting baseline was confirmed on a Titan 2 Elite running Android 16 / V02.00.04. This community build preserves that timing and vendor-control algorithm, with a new UI, normal source compilation and permanent release signing. The newly signed build still needs its physical check on each device.
 
 Requirements: Titan 2 **Elite**, Android 16, main owner profile, ambient-light sensor, and a running, authorized [Shizuku](https://shizuku.rikka.app/). Wireless setup needs Wi-Fi; it does not need root or a computer. The regular Titan 2, other phones, managed profiles and root-started Shizuku have not been validated for this release.
 
@@ -18,9 +18,9 @@ Requirements: Titan 2 **Elite**, Android 16, main owner profile, ambient-light s
 
 Follow the [complete illustrated setup page](https://jasonlok000.github.io/titan2-nightkeys/setup.html), or the [plain-text guide](docs/SETUP.md). It covers every small step: installing Shizuku, exposing Developer options, pairing through its notification, starting the service, allowing APK installation from your browser, choosing keyboard brightness, and safe removal.
 
-Download **NightKeys-1.0.0-beta.2.apk** from Releases, not a source ZIP. A GitHub account is not needed to download. Old 0.9.x trials use different signing keys: Stop & restore, uninstall the old trial, then install the community beta. Future community releases must retain the new signing certificate.
+Download **NightKeys-1.0.0-beta.3.apk** from Releases, not a source ZIP. A GitHub account is not needed to download. **Beta.3 is signed with a new key** (the previous one was lost), so it cannot update beta.1, beta.2 or 0.9.x trials in place: tap Stop & restore in the old app, uninstall it, then install beta.3. Later releases keep the beta.3 certificate and update normally.
 
-In NightKeys: **1. Install Shizuku if needed → 2. Connect & authorize → 3. Enable NightKeys.** Already-installed Shizuku is detected automatically. There is no timed test, brightness capture, or verification checklist. Android may ask for notification permission when enabling.
+In NightKeys, the one-time setup sits above the Enable button: **1. Get Shizuku → 2. Start Shizuku → 3. Allow NightKeys**, then **Enable NightKeys**. One button always shows the next step, and finished steps get a tick. There is no timed test, brightness capture, or verification checklist. Android may ask for notification permission when enabling.
 
 ## What it changes
 

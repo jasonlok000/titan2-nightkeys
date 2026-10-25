@@ -1,65 +1,68 @@
 # NightKeys setup — three steps
 
 [Visual guide with every tap](https://jasonlok000.github.io/titan2-nightkeys/setup.html).
-Guide checkmarks are optional browser-only notes, never app prerequisites.
+About 10 minutes the first time. Phone and Wi-Fi only: no computer, no root.
 
 ## Get NightKeys
 
-For Titan 2 Elite, Android 16, main owner profile. Baseline tested on V02.00.04;
-other firmware is not automatically validated. Regular Titan 2 is not supported.
-Download **NightKeys-1.0.0-beta.2.apk** from the [release](https://github.com/jasonlok000/titan2-nightkeys/releases/tag/v1.0.0-beta.2).
-Open Downloads in your browser or Files, open the .apk and choose Install → Open.
-Temporarily allow installs from that browser if Android asks; revoke that permission
-afterward if desired. Do not disable Play Protect or ignore a harmful-app warning.
+For the Titan 2 Elite on Android 16, used by the phone's main user. Tested on software
+version V02.00.04 (Settings → About phone). The regular Titan 2 is not supported.
+Download **NightKeys-1.0.0-beta.3.apk** from the [release](https://github.com/jasonlok000/titan2-nightkeys/releases/tag/v1.0.0-beta.3).
+Open it from your browser's download message or Files → Downloads, then Install → Open.
+If Android blocks it, tap Settings → Allow from this source → back → Install. Do not
+turn off Play Protect or ignore a harmful-app warning.
 
-For community beta.1, Stop & restore, then install this update normally. It uses the
-same permanent signing certificate. For older 0.9.x trials, Stop & restore, confirm
-no pending recovery, uninstall once and install the community release.
+**Had beta.1 or beta.2?** Beta.3 uses a new signing key, so it cannot install over
+them. Open the old NightKeys, tap Stop & restore, uninstall it, then install beta.3.
+Shizuku stays paired. Later updates install normally.
 
-## 1. Install Shizuku, if needed
+NightKeys opens with a **One-time setup** card above the **Enable NightKeys** button.
+One big button always shows the next step, and finished steps get a tick.
 
-NightKeys automatically shows Already installed when it finds Shizuku. Otherwise tap
-Get Shizuku for [official downloads](https://shizuku.rikka.app/download/). Choose its
-Play Store or official GitHub link, install, open and allow notifications. Return to
-NightKeys. Shizuku saying Not running is normal before step 2.
+## 1. Get Shizuku
 
-## 2. Connect & authorize
+Shizuku is a free helper app that lets NightKeys control the keyboard light without
+root. If it is already installed, NightKeys ticks this step automatically. Otherwise
+tap **Get Shizuku**, install it from Google Play or its official GitHub link, open it
+once and allow notifications. Shizuku saying "Not running" is normal at this point.
 
-Already running Shizuku? Tap Connect & authorize in NightKeys and allow it.
-For first-time wireless setup, connect to trusted Wi-Fi. No computer or root is needed.
+## 2. Start Shizuku
 
-1. Phone Settings → About phone → tap Build number seven times; enter your own PIN if asked.
-2. Back in Settings, search Developer options (often under System).
-3. Follow Shizuku instructions to enable USB debugging and Wireless debugging. Do not enable OEM unlocking.
-4. Open Shizuku → Pairing. Allow notifications if asked.
-5. Open Wireless debugging details → Pair device with pairing code.
-6. Keep the six-digit code window open. Pull down notifications → expand Shizuku pairing → Enter pairing code → send the code.
-7. Return to Shizuku and separately tap Start. Wait for Running.
-8. Return to NightKeys → Connect & authorize → Allow all the time.
+Tap **Open Shizuku**. If Shizuku has never been started, set it up once:
 
-Expected: Shizuku authorized / agui_common ready. This is a read-only service check,
-not a timed lighting test. For pairing problems allow Shizuku notifications, check
-Wi-Fi, make a fresh code and keep its dialog open. [Official help](https://shizuku.rikka.app/guide/setup/).
+1. Connect to Wi-Fi. Settings → About phone → tap Build number 7 times (enter your own PIN if asked).
+2. Settings → Developer options: turn on USB debugging and Wireless debugging. Never enable OEM unlocking.
+3. In Shizuku, under Start via Wireless debugging, tap Pairing.
+4. Settings → Developer options → tap the words Wireless debugging → Pair device with pairing code. Keep the code open.
+5. Pull down Shizuku's notification → Enter pairing code → type the 6 digits.
+6. Back in Shizuku, tap **Start** and wait for Running.
 
-## 3. Enable NightKeys
+Pairing is once only. Starting is needed again after every phone restart.
+[Official Shizuku help](https://shizuku.rikka.app/guide/setup/).
 
-Tap Enable NightKeys, and Allow if Android asks for notification permission. Done.
-There is no timed test, saved firmware confirmation, or 90-second expiry. Leave the
-app and use the phone. The running notification includes Stop & restore.
+## 3. Allow NightKeys
 
-## Optional preferences, restart and removal
+Back in NightKeys, tap **Allow NightKeys** and choose **Allow all the time** in the
+Shizuku pop-up. NightKeys shows "Ready for the dark" and "✓ Setup done". If it says it
+couldn't reach the keyboard light, tap **Try again**.
 
-NightKeys keeps the existing stock keyboard brightness. Use Open keyboard brightness
-settings to change it later; the maintainer's minimum reports 7, but there is no
-calibration or raw number to enter. Default darkness threshold is 10 lux; lowering
-it requires a darker room, raising it lights the keyboard sooner.
+## Turn it on
 
-After reboot, start Shizuku and open NightKeys; normally pairing is remembered.
-Allow unrestricted battery use for NightKeys/Shizuku if the ROM pauses them.
-Avoid the stock keyboard-light tile while NightKeys is active.
+Tap **Enable NightKeys** and allow notifications if asked. Close the app; it keeps
+working. In a dark room the keys stay lit while the screen is on. In a bright room,
+or with the screen off, the keyboard light turns off.
 
-Before uninstalling, clearing data or stopping Shizuku, Stop & restore and confirm
-No pending hardware changes. If recovery fails, retain app data and reconnect
-Shizuku to retry. The stock finite keyboard duration is a manual recovery option.
-Unexpected process/helper death can leave the timeout changed; no independent
-watchdog exists. [Safety details](SAFETY.md).
+## Adjusting, restarting and removing
+
+- **How dark is dark enough?** The slider in NightKeys' top card. Left = only in very
+  dark rooms; right = lights up sooner. Default: on below 10 lux, off at 15 lux.
+- **Brightness:** set it in the phone's own keyboard backlight setting. NightKeys keeps it.
+- **After a restart:** NightKeys shows the setup steps again. Open Shizuku → Start,
+  then tap Enable NightKeys if it's paused. No need to pair again.
+- **Keeps stopping?** Advanced settings → Battery settings → Unrestricted (same for Shizuku).
+- **Before uninstalling, clearing data or stopping Shizuku:** tap **Stop & restore**.
+  If NightKeys or Shizuku is killed unexpectedly, the keyboard timeout can stay
+  changed; there is no independent watchdog. Start Shizuku and tap Stop & restore to
+  fix it, or choose a normal time in the stock keyboard backlight settings.
+  [Safety details](SAFETY.md).
+- Avoid the stock keyboard-light quick tile while NightKeys is on.

@@ -25,5 +25,9 @@ continuity, not Unihertz LEDs. Re-running a request refuses to overwrite an
 existing release. A new version needs a new successful CI build and new private
 signing; these public signatures cannot authorize changed application contents.
 
+Beta.2 was the last offline-signed release. The original key was lost; from beta.3
+releases are signed in CI with a replacement key (see RELEASING.md). These beta.2
+public signatures remain valid only for the beta.2 artifact.
+
 Never commit the `.p12`, its passwords, or the maintainer backup. Keep redundant
 private backups of the permanent key. Do not generate a replacement release key.

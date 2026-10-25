@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.0.0-beta.3 — 2026-10-25
+
+- **New signing key.** The previous key was lost, so beta.3 cannot install over beta.1/beta.2: tap Stop & restore, uninstall the old app, then install beta.3. Future updates install normally again.
 
 - Simpler main screen for first-time users: one top card shows the status, the live room light and the "How dark is dark enough?" slider together.
 - One-time setup now sits above Enable: three steps (Get Shizuku, Start Shizuku, Allow NightKeys) with ticks and a single button for whichever step is next. It hides once setup is done and comes back if Shizuku stops.
