@@ -1,58 +1,74 @@
 <resources>
     <string name="app_name">NightKeys</string>
-    <string name="headline">A little light.\nOnly when it matters.</string>
-    <string name="subtitle">Automatic keyboard lighting for your Titan 2 Elite.</string>
     <string name="welcome_title">Let’s get you set up</string>
-    <string name="welcome_detail">Install Shizuku if needed, connect it, then enable NightKeys.</string>
+    <string name="welcome_detail">Your keyboard will light up in the dark and switch off in bright light. Finish the quick setup below, then tap Enable.</string>
     <string name="ready_title">Ready for the dark</string>
-    <string name="ready_detail">Shizuku is connected. Enable NightKeys whenever you are ready.</string>
+    <string name="ready_detail">Setup is done. Tap Enable NightKeys below.</string>
     <string name="restore_title">Restore your keyboard settings</string>
     <string name="restore_detail">A saved change is still pending. Start Shizuku, then tap Stop &amp; restore before trying again.</string>
     <string name="unsupported_title">This phone is not supported yet</string>
-    <string name="unsupported_detail">This beta is for the Titan 2 Elite on Android 16, in the main owner profile. An ambient-light sensor is required. No hardware changes will be made.</string>
-    <string name="unknown_lux">Waiting for light reading</string>
+    <string name="unsupported_detail">NightKeys is made for the Titan 2 Elite on Android 16, used by the phone’s main user. Nothing on this phone has been changed.</string>
+
+    <!-- Live light reading and the one sensitivity control, inside the top card. -->
+    <string name="unknown_lux">Reading the room light…</string>
+    <string name="light_now_dark">Right now: dark (%1$.0f lux). Keys light up.</string>
+    <string name="light_now_bright">Right now: bright (%1$.0f lux). Keys stay off.</string>
+    <string name="threshold_title">How dark is dark enough?</string>
+    <string name="threshold_format">Keys light up when it’s darker than %1$.0f lux.</string>
+    <string name="threshold_hint">Slide left: only in very dark rooms. Slide right: lights up sooner.</string>
+    <string name="meter_on">Keys on</string>
+    <string name="meter_off">Keys off</string>
+
+    <!-- One-time setup. One button at a time, for whichever step is next. -->
+    <string name="setup_title">One-time setup</string>
+    <string name="setup_intro">3 quick steps. You only do this once.</string>
+    <string name="setup_done">✓ Setup done</string>
+    <string name="step_get">Get Shizuku</string>
+    <string name="step_get_detail">A free helper app that lets NightKeys control the keyboard light, without rooting your phone.</string>
+    <string name="step_get_done">Installed</string>
+    <string name="step_start">Start Shizuku</string>
+    <string name="step_start_detail">Open Shizuku and tap Start. First time? Shizuku shows you how to pair over Wi‑Fi. Our guide explains every tap.</string>
+    <string name="step_start_done">Running</string>
+    <string name="step_allow">Allow NightKeys</string>
+    <string name="step_allow_detail">Tap Allow NightKeys, then choose “Allow all the time” in the Shizuku pop-up.</string>
+    <string name="step_allow_connecting">Almost done. Connecting to the keyboard light…</string>
+    <string name="step_allow_failed">Couldn’t reach the keyboard light. Tap Try again.</string>
+    <string name="step_allow_denied">Access was declined. Tap Allow NightKeys and choose “Allow all the time”.</string>
+    <string name="step_allow_done">Allowed</string>
+    <string name="install_shizuku">Get Shizuku</string>
+    <string name="open_shizuku">Open Shizuku</string>
+    <string name="authorize">Allow NightKeys</string>
+    <string name="try_again">Try again</string>
+    <string name="guide">Stuck? Open the step-by-step guide</string>
+    <string name="step_done_description">Done</string>
+    <string name="step_current_description">Next step</string>
+
+    <!-- Main switch. -->
     <string name="enable">Enable NightKeys</string>
     <string name="stop_restore">Stop &amp; restore</string>
-    <string name="access_initial">Start Shizuku, then connect NightKeys.</string>
-    <string name="open_shizuku">Open Shizuku</string>
-    <string name="authorize">Connect &amp; authorize</string>
-    <string name="brightness_detail">Optional: adjust keyboard brightness in the phone’s settings. NightKeys keeps your chosen level; there is nothing to capture or confirm.</string>
-    <string name="open_keyboard">Open keyboard brightness settings</string>
-    <string name="threshold_title">How dark is dark enough?</string>
-    <string name="threshold_initial">On below 10 lux. Off at 15 lux.</string>
-    <string name="threshold_format">On below %1$.1f lux. Off at %2$.1f lux.</string>
-    <string name="threshold_detail">A lower number means the room needs to be darker. The small gap between on and off avoids flickering near the threshold. Start with 10 lux.</string>
-    <string name="help_title">Help &amp; reliability</string>
-    <string name="resume_boot">Resume after restarting Shizuku</string>
-    <string name="restart_detail">After a phone reboot, start Shizuku again and open NightKeys. Android may prevent automatic restart. Use unrestricted battery mode if your phone pauses the app.</string>
-    <string name="battery">Open NightKeys battery &amp; app settings</string>
-    <string name="guide">Read the step-by-step guide</string>
+    <string name="enable_waiting">Finish the setup above first.</string>
+    <string name="enable_ready">You’re all set. Tap Enable and close the app.</string>
+    <string name="enabled_detail">Automatic lighting is on. It continues when you leave the app.</string>
+    <string name="notification_needed">Allow notifications, then try again.</string>
+
+    <!-- Advanced settings: folded away by default. -->
+    <string name="advanced_show">Advanced settings ▾</string>
+    <string name="advanced_hide">Advanced settings ▴</string>
+    <string name="advanced_expanded">Expanded</string>
+    <string name="advanced_collapsed">Collapsed</string>
+    <string name="resume_boot">Turn back on after Shizuku restarts</string>
+    <string name="restart_detail">After a phone restart, open Shizuku and tap Start, then open NightKeys.</string>
+    <string name="battery">Battery settings (if it keeps stopping)</string>
     <string name="copy_report">Copy support report</string>
     <string name="report_title">Copy a report for support?</string>
     <string name="report_consent">This copies model, firmware, light readings, keyboard timeout and connection status to your clipboard. Nothing is uploaded. Review it before posting publicly. It does not include typed text or a device serial number.</string>
     <string name="report_copied">Report copied. Review it before sharing.</string>
-    <string name="notification_needed">Allow notifications, then try again.</string>
     <string name="cancel">Cancel</string>
-    <string name="safety_note">Before uninstalling, clearing app data or stopping Shizuku, tap Stop &amp; restore. If the app is killed unexpectedly, a persistent keyboard setting can remain changed. This beta has no independent watchdog.</string>
+    <string name="safety_note">Before uninstalling, clearing app data or stopping Shizuku, tap Stop &amp; restore. If the app is killed unexpectedly, a keyboard setting can stay changed. This beta has no independent watchdog.</string>
     <string name="version_label">NightKeys %1$s · community beta</string>
     <string name="licenses">About &amp; open-source licences</string>
     <string name="license_error">Open THIRD_PARTY_NOTICES.md in the source repository for licence details.</string>
     <string name="independent">Independent community software. Not affiliated with Unihertz or Shizuku.</string>
     <string name="open_failed">Could not open that screen. Use the step-by-step guide.</string>
     <string name="action_failed">The action failed. Copy a support report for details.</string>
-    <string name="step_install">1 · Install Shizuku</string>
-    <string name="install_shizuku">Get Shizuku</string>
-    <string name="install_detail">Shizuku lets NightKeys control the keyboard without root. Get it from the official download page, then return here.</string>
-    <string name="shizuku_installed">✓ Already installed. You can skip this step.</string>
-    <string name="install_first">Install Shizuku above to continue.</string>
-    <string name="step_connect">2 · Connect &amp; authorize</string>
-    <string name="start_shizuku">Start Shizuku</string>
-    <string name="start_shizuku_detail">Open Shizuku and start its service. Return here, tap Connect &amp; authorize, and allow NightKeys in the prompt.</string>
-    <string name="reconnect">Reconnect Shizuku</string>
-    <string name="step_enable">3 · Enable NightKeys</string>
-    <string name="enable_ready">Ready. Start automatic lighting now — no timed test or checklist.</string>
-    <string name="enable_waiting">Connect Shizuku in step 2, then turn on automatic lighting here.</string>
-    <string name="enabled_detail">Automatic lighting is on. It continues when you leave the app.</string>
-    <string name="enable_note">Allow the quiet running notification if Android asks. Your stock keyboard brightness stays unchanged.</string>
-    <string name="preferences_title">Optional preferences</string>
 </resources>

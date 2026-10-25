@@ -95,11 +95,12 @@ public final class PermissionTests extends Instrumentation {
             check(app.bridge.status().contains("agui_common"), "Failure did not identify agui_common");
         });
         test("production screen has exactly three setup steps and no consumer test controls", () -> {
-            int[] headings = {com.everyonesniche.nightkeys.R.string.step_install,
-                    com.everyonesniche.nightkeys.R.string.step_connect,
-                    com.everyonesniche.nightkeys.R.string.step_enable};
-            for (int i = 0; i < headings.length; i++)
-                check(context.getString(headings[i]).startsWith(Integer.toString(i+1)), "Wrong step order");
+            String pkg = context.getPackageName();
+            int[] steps = {com.everyonesniche.nightkeys.R.id.step1_badge, com.everyonesniche.nightkeys.R.id.step2_badge,
+                    com.everyonesniche.nightkeys.R.id.step3_badge};
+            check(steps.length == 3, "Setup must have exactly three steps");
+            check(context.getResources().getIdentifier("step4_badge", "id", pkg) == 0, "Extra setup step");
+            check(context.getResources().getIdentifier("open_keyboard", "id", pkg) == 0, "Keyboard brightness shortcut remains");
             check(context.getResources().getIdentifier("test", "id", context.getPackageName()) == 0, "Timed check remains");
             check(context.getResources().getIdentifier("confirm_test", "id", context.getPackageName()) == 0, "Confirmation remains");
             check(context.getResources().getIdentifier("diag_hold", "id", context.getPackageName()) == 0,

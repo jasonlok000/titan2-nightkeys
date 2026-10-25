@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Simpler main screen for first-time users: one top card shows the status, the live room light and the "How dark is dark enough?" slider together.
+- One-time setup now sits above Enable: three steps (Get Shizuku, Start Shizuku, Allow NightKeys) with ticks and a single button for whichever step is next. It hides once setup is done and comes back if Shizuku stops.
+- Technical status lines (Shizuku/agui_common checks) are replaced with plain-language hints.
+- Removed the keyboard-brightness shortcut; brightness is still whatever you set in the phone's own settings.
+- Help & reliability is folded into Advanced settings.
+- Lighting policy, thresholds, recovery and signing are unchanged.
+
 ## 1.0.0-beta.2
 
 - Replace the temporary check/confirmation flow with three steps: install Shizuku if absent, connect and authorize, enable.

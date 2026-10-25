@@ -51,4 +51,45 @@
         <item name="android:textColor">@color/accent</item>
         <item name="android:layout_marginTop">10dp</item>
     </style>
+    <style name="TextButton" parent="SecondaryButton">
+        <item name="android:background">@drawable/button_text</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="Divider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:layout_marginTop">18dp</item>
+        <item name="android:layout_marginBottom">14dp</item>
+        <item name="android:background">@drawable/divider</item>
+    </style>
+    <!-- One setup step: round number/tick badge, title, and a hint shown only for the next step. -->
+    <style name="StepRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+    <style name="StepBadge">
+        <item name="android:layout_width">32dp</item>
+        <item name="android:layout_height">32dp</item>
+        <item name="android:layout_marginEnd">14dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:background">@drawable/step_todo</item>
+        <item name="android:textColor">@color/muted</item>
+    </style>
+    <style name="StepText">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+    <style name="StepTitle" parent="SectionTitle">
+        <item name="android:textSize">17sp</item>
+        <item name="android:layout_marginTop">4dp</item>
+    </style>
 </resources>

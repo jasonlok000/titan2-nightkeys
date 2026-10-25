@@ -37,7 +37,6 @@ import com.everyonesniche.nightkeys.hardware.AndroidPort;
 import com.everyonesniche.nightkeys.service.LightingService;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -54,8 +53,11 @@ public final class MainActivity extends Activity implements SensorEventListener 
     private boolean resumed, previewRegistered, dragging;
     private float previewLux = Float.NaN;
     private String pendingAction;
-    private TextView statusTitle, statusDetail, luxValue, thresholdLabel, accessLabel, error, installLabel, enableDetail;
-    private Button primary, install, authorize;
+    private boolean advancedOpen;
+    private TextView statusTitle, statusDetail, luxValue, thresholdLabel, error, enableDetail, setupDone;
+    private final TextView[] stepBadges = new TextView[3], stepDetails = new TextView[3];
+    private Button primary, authorize, advancedToggle;
+    private View setupCard, advanced;
     private SeekBar threshold;
     private LuxMeterView meter;
     private final Runnable uiRefresh = new Runnable() {
@@ -67,7 +69,10 @@ public final class MainActivity extends Activity implements SensorEventListener 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
         app = (NightKeysApp) getApplication();
-        if (saved != null) pendingAction = saved.getString("pendingAction");
+        if (saved != null) {
+            pendingAction = saved.getString("pendingAction");
+            advancedOpen = saved.getBoolean("advancedOpen");
+        }
         getWindow().setDecorFitsSystemWindows(false);
         setContentView(R.layout.activity_main);
         View root = findViewById(R.id.root);
@@ -84,13 +89,20 @@ public final class MainActivity extends Activity implements SensorEventListener 
         statusDetail = findViewById(R.id.status_detail);
         luxValue = findViewById(R.id.lux_value);
         thresholdLabel = findViewById(R.id.threshold_label);
-        accessLabel = findViewById(R.id.access_label);
         error = findViewById(R.id.error);
         primary = findViewById(R.id.main_action);
-        install = findViewById(R.id.install_shizuku);
-        authorize = findViewById(R.id.authorize);
-        installLabel = findViewById(R.id.install_label);
+        authorize = findViewById(R.id.setup_action);
         enableDetail = findViewById(R.id.enable_detail);
+        setupCard = findViewById(R.id.setup_card);
+        setupDone = findViewById(R.id.setup_done);
+        advanced = findViewById(R.id.advanced);
+        advancedToggle = findViewById(R.id.advanced_toggle);
+        int[] badges = {R.id.step1_badge, R.id.step2_badge, R.id.step3_badge};
+        int[] details = {R.id.step1_detail, R.id.step2_detail, R.id.step3_detail};
+        for (int i = 0; i < 3; i++) {
+            stepBadges[i] = findViewById(badges[i]);
+            stepDetails[i] = findViewById(details[i]);
+        }
         threshold = findViewById(R.id.threshold);
         meter = findViewById(R.id.lux_meter);
         ((TextView) findViewById(R.id.version)).setText(getString(R.string.version_label, BuildConfig.VERSION_NAME));
@@ -98,15 +110,16 @@ public final class MainActivity extends Activity implements SensorEventListener 
             if (app.state.running || app.journal.pending()) command(LightingService.STOP);
             else requestVisibleService(LightingService.START);
         });
-        install.setOnClickListener(v -> open(new Intent(Intent.ACTION_VIEW,
-                Uri.parse("https://shizuku.rikka.app/download/"))));
+        // One button drives whichever setup step is next.
         authorize.setOnClickListener(v -> {
-            if (!shizukuInstalled() || !shizukuRunning()) openShizuku();
+            if (!shizukuInstalled()) open(new Intent(Intent.ACTION_VIEW, Uri.parse("https://shizuku.rikka.app/download/")));
+            else if (!shizukuRunning()) openShizuku();
             else app.bridge.authorize();
         });
-        findViewById(R.id.open_shizuku).setOnClickListener(v -> openShizuku());
-        findViewById(R.id.open_keyboard).setOnClickListener(v -> openKeyboardSettings());
         findViewById(R.id.guide).setOnClickListener(v -> open(new Intent(Intent.ACTION_VIEW, Uri.parse(GUIDE))));
+        findViewById(R.id.help_guide).setOnClickListener(v -> open(new Intent(Intent.ACTION_VIEW, Uri.parse(GUIDE))));
+        advancedToggle.setOnClickListener(v -> { advancedOpen = !advancedOpen; showAdvanced(); });
+        showAdvanced();
         findViewById(R.id.battery).setOnClickListener(v -> open(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                 Uri.parse("package:" + getPackageName()))));
         findViewById(R.id.support).setOnClickListener(v -> new AlertDialog.Builder(this)
@@ -135,6 +148,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
 
     @Override protected void onSaveInstanceState(Bundle out) {
         out.putString("pendingAction", pendingAction);
+        out.putBoolean("advancedOpen", advancedOpen);
         super.onSaveInstanceState(out);
     }
     @Override protected void onResume() {
@@ -156,13 +170,14 @@ public final class MainActivity extends Activity implements SensorEventListener 
         boolean supported = Config.supportedIdentity() && light != null;
         boolean installed = shizukuInstalled();
         boolean server = shizukuRunning();
+        boolean ready = app.bridge.ready();
         if (!supported) {
             statusTitle.setText(R.string.unsupported_title);
             statusDetail.setText(R.string.unsupported_detail);
         } else if (!active && pending) {
             statusTitle.setText(R.string.restore_title);
             statusDetail.setText(R.string.restore_detail);
-        } else if (!active && app.bridge.ready()) {
+        } else if (!active && ready) {
             statusTitle.setText(R.string.ready_title);
             statusDetail.setText(R.string.ready_detail);
         } else if (!active) {
@@ -174,19 +189,11 @@ public final class MainActivity extends Activity implements SensorEventListener 
         }
         primary.setText(active || pending ? R.string.stop_restore : R.string.enable);
         primary.setEnabled(active || pending || Onboarding.canStart(Config.supportedIdentity(),
-                light != null, app.bridge.ready(), active, pending));
-        primary.setAlpha(primary.isEnabled() ? 1f : .5f);
-        installLabel.setText(installed ? R.string.shizuku_installed : R.string.install_detail);
-        install.setVisibility(installed ? View.GONE : View.VISIBLE);
-        accessLabel.setText(!installed ? getString(R.string.install_first) : !server
-                ? getString(R.string.start_shizuku_detail) : app.bridge.status());
-        authorize.setText(app.bridge.ready() ? R.string.reconnect
-                : server ? R.string.authorize : R.string.start_shizuku);
-        // Reconnection must remain available if a session needs restoration.
-        authorize.setEnabled(installed);
-        findViewById(R.id.open_shizuku).setVisibility(installed ? View.VISIBLE : View.GONE);
+                light != null, ready, active, pending));
+        primary.setAlpha(primary.isEnabled() ? 1f : .45f);
         enableDetail.setText(active ? R.string.enabled_detail : pending ? R.string.restore_detail
-                : app.bridge.ready() ? R.string.enable_ready : R.string.enable_waiting);
+                : ready ? R.string.enable_ready : R.string.enable_waiting);
+        renderSetup(supported, installed, server, ready);
 
         error.setText(app.config.lastError());
         error.setVisibility(app.config.lastError().isBlank() ? View.GONE : View.VISIBLE);
@@ -196,12 +203,49 @@ public final class MainActivity extends Activity implements SensorEventListener 
         }
         updatePreviewRegistration();
         float lux = active ? state.lux : previewLux;
-        luxValue.setText(Float.isFinite(lux) ? String.format(Locale.getDefault(), "%.1f lux", lux) : getString(R.string.unknown_lux));
+        luxValue.setText(!Float.isFinite(lux) ? getString(R.string.unknown_lux)
+                : getString(lux < app.config.threshold() ? R.string.light_now_dark : R.string.light_now_bright, lux));
         meter.readings(lux, app.config.threshold());
     }
+    /** Setup stays visible until the bridge is ready, and comes back if Shizuku stops (e.g. after a restart). */
+    private void renderSetup(boolean supported, boolean installed, boolean server, boolean ready) {
+        boolean show = supported && !ready;
+        setupCard.setVisibility(show ? View.VISIBLE : View.GONE);
+        setupDone.setVisibility(supported && ready && !app.state.running ? View.VISIBLE : View.GONE);
+        if (!show) return;
+        int current = !installed ? 0 : !server ? 1 : 2;
+        boolean authorized = server && app.bridge.authorized();
+        boolean connecting = authorized && app.bridge.connecting();
+        String bridge = app.bridge.status();
+        int[] waiting = {R.string.step_get_detail, R.string.step_start_detail, !authorized
+                ? (bridge.startsWith("Authorization denied") || bridge.contains("Authorized applications")
+                        ? R.string.step_allow_denied : R.string.step_allow_detail)
+                : connecting ? R.string.step_allow_connecting : R.string.step_allow_failed};
+        int[] done = {R.string.step_get_done, R.string.step_start_done, R.string.step_allow_done};
+        for (int i = 0; i < 3; i++) {
+            TextView badge = stepBadges[i];
+            boolean finished = i < current;
+            badge.setText(finished ? "✓" : String.valueOf(i + 1));
+            badge.setBackgroundResource(finished ? R.drawable.step_done : i == current ? R.drawable.step_current : R.drawable.step_todo);
+            badge.setTextColor(getColor(finished ? R.color.accent_dark : i == current ? R.color.accent : R.color.muted));
+            badge.setContentDescription(finished ? getString(R.string.step_done_description)
+                    : i == current ? getString(R.string.step_current_description) : null);
+            stepDetails[i].setText(finished ? done[i] : waiting[i]);
+            stepDetails[i].setVisibility(i <= current ? View.VISIBLE : View.GONE);
+        }
+        authorize.setText(current == 0 ? R.string.install_shizuku : current == 1 ? R.string.open_shizuku
+                : authorized && !connecting ? R.string.try_again : R.string.authorize);
+        // Reconnection must remain available if a session needs restoration; only a running check disables it.
+        authorize.setEnabled(!connecting);
+        authorize.setAlpha(connecting ? .45f : 1f);
+    }
+    private void showAdvanced() {
+        advanced.setVisibility(advancedOpen ? View.VISIBLE : View.GONE);
+        advancedToggle.setText(advancedOpen ? R.string.advanced_hide : R.string.advanced_show);
+        advancedToggle.setStateDescription(getString(advancedOpen ? R.string.advanced_expanded : R.string.advanced_collapsed));
+    }
     private void showThreshold(float on) {
-        float off = Math.max(on + 3f, on * 1.5f);
-        thresholdLabel.setText(getString(R.string.threshold_format, on, off));
+        thresholdLabel.setText(getString(R.string.threshold_format, on));
     }
     private void updatePreviewRegistration() {
         boolean need = resumed && !app.state.running && light != null;
@@ -248,10 +292,6 @@ public final class MainActivity extends Activity implements SensorEventListener 
         Intent launch = getPackageManager().getLaunchIntentForPackage("moe.shizuku.privileged.api");
         open(launch == null ? new Intent(Intent.ACTION_VIEW,
                 Uri.parse("https://shizuku.rikka.app/download/")) : launch);
-    }
-    private void openKeyboardSettings() {
-        try { startActivity(new Intent().setClassName("com.agui.settings", "com.agui.settings.touchpad.KeyboardLEDSettingsActivity")); }
-        catch (RuntimeException e) { open(new Intent(Settings.ACTION_DISPLAY_SETTINGS)); }
     }
     private void copyReport() {
         final String initial = "NightKeys " + BuildConfig.VERSION_NAME + " support report\n"

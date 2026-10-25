@@ -370,6 +370,8 @@ public final class BridgeClient {
         }
     }
 
+    /** True while the post-authorization agui_common readback is still running. */
+    public boolean connecting() { return connecting; }
     public String status() { return status; }
     public String transportDiagnostics() { return transportDiagnostics; }
     public Bundle info() { return info == null ? null : new Bundle(info); }
