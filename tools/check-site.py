@@ -44,4 +44,9 @@ version=dict(line.split('=',1) for line in (root/'version.properties').read_text
 assert release['version']==version['versionName']
 assert release['tag']=='v'+release['version']
 assert f"NightKeys-{release['version']}.apk" in (site/'setup.html').read_text(encoding='utf-8')
+for tool in catalog['tools']:
+    if 'apk' in tool:
+        guide=(site/tool['guide']).read_text(encoding='utf-8')
+        assert tool['apk'] in guide and tool['version'] in tool['apk'],f"{tool['id']}: guide and catalogue disagree on {tool['apk']}"
+        assert tool['guide'] in (site/'index.html').read_text(encoding='utf-8'),f"{tool['id']}: not listed on the homepage"
 print(f'PASS: {len(pages)} static pages; internal links, anchors, catalogue, local scripts and release identity.')

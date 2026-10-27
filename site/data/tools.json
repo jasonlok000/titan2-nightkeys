@@ -10,6 +10,18 @@
       "source": "https://github.com/jasonlok000/titan2-nightkeys",
       "guide": "setup.html",
       "platform": "Titan 2 Elite / Android 16"
+    },
+    {
+      "id": "scale-toggle",
+      "name": "Scale Toggle",
+      "description": "Long-press the side button to switch between a phone layout and a tablet layout.",
+      "status": "available",
+      "releaseStage": "stable",
+      "source": "https://github.com/jasonlok000/titan2-nightkeys/releases/tag/scaletoggle-v1.0.4",
+      "guide": "scale-toggle.html",
+      "platform": "Titan 2 Elite / Android 16",
+      "version": "1.0.4",
+      "apk": "ScaleToggle-1.0.4.apk"
     }
   ]
 }

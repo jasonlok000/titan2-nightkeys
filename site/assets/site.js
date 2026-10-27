@@ -71,10 +71,67 @@ if (phone) {
   }).observe(demo);
   render(); schedule();
 }
+// Scale Toggle illustration: a long press on the side key flips the layout and shows the toast.
+const scalePhone = document.querySelector('[data-scale-phone]');
+if (scalePhone) {
+  const demo = scalePhone.closest('.demo');
+  const status = document.querySelector('#scale-status');
+  const toastText = scalePhone.querySelector('.toast-text');
+  const sideButton = document.querySelector('#side-press');
+  const presets = [...document.querySelectorAll('[data-mode-preset]')];
+  const autoButton = document.querySelector('#scale-auto');
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const words = { phone: 'Phone mode · big and easy to tap', tablet: 'Tablet mode · two panes side by side' };
+  let mode = 'phone';
+  let pressing = false;
+  let toastTimer;
+  function setMode(next) {
+    if (next === mode) return;
+    mode = next;
+    scalePhone.dataset.mode = mode;
+    demo.dataset.mode = mode;
+    status.textContent = words[mode];
+    for (const button of presets) button.setAttribute('aria-pressed', String(button.dataset.modePreset === mode));
+    // Same text as the app's success toast.
+    toastText.textContent = mode === 'tablet' ? 'Tablet mode' : 'Phone mode';
+    scalePhone.dataset.toast = 'true';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { scalePhone.dataset.toast = 'false'; }, 1700);
+  }
+  function longPress() {
+    if (pressing) return;
+    pressing = true;
+    scalePhone.dataset.pressing = sideButton.dataset.pressing = 'true';
+    setTimeout(() => {
+      pressing = false;
+      scalePhone.dataset.pressing = sideButton.dataset.pressing = 'false';
+      setMode(mode === 'phone' ? 'tablet' : 'phone');
+    }, reducedMotion.matches ? 0 : 450);
+  }
+  let autoTimer;
+  let autoOn = !reducedMotion.matches;
+  let visible = true;
+  function schedule() {
+    clearTimeout(autoTimer);
+    autoButton.textContent = autoOn ? 'Pause auto-switch' : 'Play auto-switch';
+    if (!autoOn || !visible || document.hidden) return;
+    autoTimer = setTimeout(() => { longPress(); schedule(); }, 3800);
+  }
+  function stopAuto() { autoOn = false; schedule(); }
+  sideButton.addEventListener('click', () => { stopAuto(); longPress(); });
+  presets.forEach(button => button.addEventListener('click', () => { stopAuto(); setMode(button.dataset.modePreset); }));
+  autoButton.addEventListener('click', () => { autoOn = !autoOn; schedule(); });
+  document.addEventListener('visibilitychange', schedule);
+  if ('IntersectionObserver' in window) new IntersectionObserver(entries => {
+    visible = entries[0].isIntersecting; schedule();
+  }).observe(demo);
+  schedule();
+}
 // Optional setup progress is stored only on this browser, never submitted.
 const checks = [...document.querySelectorAll('[data-step-check]')];
 if (checks.length) {
-  const key = 'titan-tools-setup-v2';
+  // Each guide keeps its own checklist, so resetting one never clears another.
+  const key = document.body.dataset.progressKey || 'titan-tools-setup-v2';
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (_) { }
   const update = () => {
@@ -97,14 +154,14 @@ if (checks.length) {
   });
   update();
 }
-// Static NightKeys markup remains complete when JavaScript or fetching is unavailable.
+// Static markup for listed tools remains complete when JavaScript or fetching is unavailable.
 const catalogue = document.querySelector('#tool-catalogue');
 if (catalogue) fetch('data/tools.json').then(response => {
   if (!response.ok) throw new Error('Catalogue unavailable');
   return response.json();
 }).then(data => {
   if (!Array.isArray(data.tools)) return;
-  for (const tool of data.tools.filter(t => t.id !== 'nightkeys' && t.status === 'available')) {
+  for (const tool of data.tools.filter(t => t.status === 'available' && !catalogue.querySelector(`[data-tool="${t.id}"]`))) {
     if (!/^[a-z0-9-]+$/.test(tool.id)) continue;
     const source = new URL(tool.source);
     if (source.protocol !== 'https:' || source.hostname !== 'github.com') continue;

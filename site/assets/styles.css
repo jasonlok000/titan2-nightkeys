@@ -78,3 +78,29 @@ html{scroll-padding-top:12px}.wrap{width:calc(100% - 28px)}.site-header{height:5
 .page-hero{padding:16px 0 12px}.page-hero h1{font-size:clamp(28px,8vw,38px)}.page-hero .lede{margin-top:10px;font-size:15px}.breadcrumb,.page-hero .mini-steps{display:none}.guide-nav .fine{display:none}.guide-nav .progress-text{margin-top:8px}.restart-note{padding:10px 12px;font-size:13px}.setup-download{padding:16px}
 .guide-nav{padding:12px 0 14px;margin-bottom:14px}.guide-nav h2{display:none}.guide-nav ol{display:flex;flex-wrap:wrap;gap:6px}.guide-nav ol a{border:1px solid var(--line);border-radius:100px;padding:6px 12px}
 .step{padding-block:20px 24px}.step h2{font-size:24px}.step-body{margin-top:14px}}
+/* Scale Toggle page: the same Titan illustration switching between a phone and a tablet layout. */
+.scale-demo{background:radial-gradient(90% 60% at 50% 72%,#1d2d3f 0%,#0a121d 60%,#04070c 100%);transition:background .6s}
+.scale-demo[data-mode=tablet]{background:radial-gradient(90% 60% at 50% 72%,#22382c 0%,#0b1712 60%,#040a07 100%)}
+.hero-copy .breadcrumb{margin-bottom:22px}
+.elite-phone .scale-label{fill:var(--paper);letter-spacing:-.4px;font-weight:550}
+.layout{transform-box:view-box;transform-origin:158px 171px;transition:opacity .35s,transform .45s cubic-bezier(.2,.7,.2,1)}
+.phone[data-mode=phone] .layout-tablet{opacity:0;transform:scale(1.18)}
+.phone[data-mode=tablet] .layout-phone{opacity:0;transform:scale(.85)}
+.screen-toast{opacity:0;transform-box:view-box;transform:translateY(6px);transition:opacity .25s,transform .25s}
+.phone[data-toast=true] .screen-toast{opacity:1;transform:none}
+.side-key{transform-box:fill-box;transition:transform .15s,fill .15s}
+.side-key-glow{fill:none;stroke:#ff8a7a;stroke-width:1.5;opacity:0;transition:opacity .2s}
+.phone[data-pressing=true] .side-key{transform:translateX(-1.5px);fill:#e2584c}
+.phone[data-pressing=true] .side-key-glow{opacity:.9;animation:side-pulse .5s ease-out}
+@keyframes side-pulse{from{stroke-width:5;opacity:.15}to{stroke-width:1.5;opacity:.9}}
+.side-press{display:flex;align-items:center;justify-content:center;gap:11px;min-height:50px;padding:10px 16px;border-radius:100px;border:1px solid #c0473e99;background:#c0473e1f;color:var(--paper);font-size:15px;font-weight:650;letter-spacing:-.01em}
+.side-press:hover{background:#c0473e33}.side-press[data-pressing=true]{background:#c0473e55}
+.side-label-short{display:none}.side-dot{width:9px;height:18px;border-radius:3px;background:#c0473e;box-shadow:0 0 0 4px #c0473e30;flex-shrink:0}
+.scale-guide-intro{padding-top:96px}.scale-guide-intro h2{font-size:clamp(38px,4.8vw,62px);max-width:850px}
+.tool-links .button{min-height:42px;padding:9px 18px;font-size:14px}
+@media(max-width:760px){.scale-guide-intro{padding-top:56px}.scale-guide-intro h2{font-size:38px}.side-press{min-height:46px;font-size:14px}}
+@media(max-width:760px) and (min-aspect-ratio:3/4){.side-label-full{display:none}.side-label-short{display:inline}.side-press{min-height:42px;font-size:13px;padding:6px 10px;gap:8px}.side-dot{height:14px;width:7px}.scale-guide-intro{padding-top:30px}.scale-guide-intro h2{font-size:clamp(26px,7.5vw,34px)}.hero-copy .breadcrumb{display:none}}
+/* Four header links: keep each on one line; narrow phones show the brand icon only. */
+.site-nav a,.brand{white-space:nowrap}
+@media(max-width:520px){.brand{font-size:0;gap:0}.brand svg{width:28px;height:28px}.site-nav{gap:14px}}
+@media(max-width:350px){.site-nav{gap:11px;font-size:11.5px}.site-nav a[href="contribute.html"]{display:none}}

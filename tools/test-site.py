@@ -61,6 +61,32 @@ try:
             assert page.evaluate("location.hash")=='#connect'
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
             page.screenshot(path=str(output/f'setup-{label}.png'),full_page=True)
+            page.goto('http://127.0.0.1:8765/scale-toggle.html',wait_until='networkidle')
+            assert page.title()=='Scale Toggle — phone or tablet layout on the Titan 2 Elite'
+            sphone=page.locator('[data-scale-phone]');sdemo=page.locator('#scale-demo')
+            assert sphone.get_attribute('data-mode')=='phone'
+            assert page.locator('#scale-auto').inner_text()=='Play auto-switch'
+            page.get_by_role('button',name='Long-press the side button').click();page.wait_for_timeout(150)
+            assert sphone.get_attribute('data-mode')=='tablet' and sdemo.get_attribute('data-mode')=='tablet'
+            assert page.locator('.toast-text').text_content()=='Tablet mode'
+            assert page.locator('#scale-status').inner_text()=='Tablet mode · two panes side by side'
+            page.get_by_role('button',name='Phone mode',exact=True).click()
+            assert sphone.get_attribute('data-mode')=='phone' and page.locator('.toast-text').text_content()=='Phone mode'
+            sdemo.scroll_into_view_if_needed()
+            assert sdemo.bounding_box()['height']<=h or w>760, f'{label}: scale demo taller than the screen'
+            assert page.locator('.step h2').all_text_contents()==['Start Shizuku, the helper app','Allow Scale Toggle','Bind it to the side button']
+            page.locator('[data-step-check="allow"]').check()
+            assert page.locator('#setup-progress').inner_text()=='1 of 3 steps complete'
+            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+            page.screenshot(path=str(output/f'scale-toggle-{label}.png'),full_page=True)
+            # Each guide keeps its own checklist.
+            page.goto('http://127.0.0.1:8765/setup.html',wait_until='networkidle')
+            assert page.locator('#setup-progress').inner_text()=='0 of 3 steps complete'
+            page.goto('http://127.0.0.1:8765/scale-toggle.html',wait_until='networkidle')
+            assert page.locator('[data-step-check="allow"]').is_checked()
+            page.locator('#reset-progress').click()
+            page.goto('http://127.0.0.1:8765/',wait_until='networkidle')
+            assert page.locator('[data-tool="scale-toggle"]').count()==1 and page.locator('.tool-row').count()==2
             for route in ('contribute.html','privacy.html'):
                 page.goto('http://127.0.0.1:8765/'+route,wait_until='networkidle')
                 assert page.locator('h1').is_visible()
@@ -80,9 +106,12 @@ try:
         context=browser.new_context(java_script_enabled=False,viewport={'width':390,'height':844})
         page=context.new_page();page.goto('http://127.0.0.1:8765/setup.html')
         assert page.locator('.step').count()==3 and page.get_by_role('link',name='Download NightKeys',exact=True).count()==1
+        page.goto('http://127.0.0.1:8765/scale-toggle.html')
+        assert page.locator('.step').count()==3 and page.get_by_role('link',name='Download Scale Toggle',exact=True).count()==1
+        assert page.locator('[data-scale-phone]').is_visible() and not page.get_by_role('button',name='Tablet mode').is_visible()
         page.goto('http://127.0.0.1:8765/')
         assert page.locator('[data-phone]').is_visible() and not page.get_by_role('button',name='Bright room').is_visible()
         context.close();browser.close()
 finally:server.shutdown()
 (output/'results.json').write_text(json.dumps({'checks':results,'autoSwitch':'pass','noJavaScriptGuide':'pass'},indent=2))
-print(f'PASS: {len(viewports)} viewports incl. Titan 9:10, real navigation, room demo, auto-switch, checklist persistence/reset, no-JS pages.')
+print(f'PASS: {len(viewports)} viewports incl. Titan 9:10, real navigation, room and Scale Toggle demos, auto-switch, checklist persistence/reset, no-JS pages.')
