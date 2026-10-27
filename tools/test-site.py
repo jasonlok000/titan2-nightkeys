@@ -79,6 +79,35 @@ try:
             assert page.locator('#setup-progress').inner_text()=='1 of 3 steps complete'
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
             page.screenshot(path=str(output/f'scale-toggle-{label}.png'),full_page=True)
+            page.goto('http://127.0.0.1:8765/hold-symbols.html',wait_until='networkidle')
+            assert page.title()=='Hold Symbols — hold a key for its symbol on the Titan 2 Elite'
+            hphone=page.locator('[data-hold-phone]');hdemo=page.locator('#hold-demo');typed=page.locator('.typed-text')
+            # Reduced motion: no auto typing, the finished example stays on screen.
+            assert page.locator('#hold-auto').inner_text()=='Play demo' and typed.text_content()=='see you at 4:30!'
+            page.locator('#hold-clear').click()
+            assert typed.text_content()==''
+            hdemo.scroll_into_view_if_needed()
+            page.keyboard.press('h');page.keyboard.press('i')
+            assert typed.text_content()=='hi' and page.locator('#hold-status').inner_text()=='Tapped I → i'
+            # Holding past 400 ms types the printed symbol and pops it up, even with reduced motion.
+            box=page.locator('#hold-press').bounding_box()
+            page.mouse.move(box['x']+box['width']/2,box['y']+box['height']/2);page.mouse.down();page.wait_for_timeout(550)
+            assert typed.text_content()=='hi4' and hphone.get_attribute('data-bubble')=='true', (label, typed.text_content(), hphone.get_attribute('data-bubble'), page.locator('#hold-status').inner_text())
+            assert page.locator('[data-key="S"]').get_attribute('data-state')=='held'
+            assert page.locator('#hold-status').inner_text()=='Held S → 4'
+            page.mouse.up()
+            assert typed.text_content()=='hi4' and page.locator('[data-key="S"]').get_attribute('data-state') is None
+            page.mouse.down();page.wait_for_timeout(80);page.mouse.up()
+            assert typed.text_content()=='hi4s', 'a quick press on the big button types the letter'
+            assert hdemo.bounding_box()['height']<=h or w>760, f'{label}: hold demo taller than the screen'
+            assert page.locator('#hold-press').bounding_box()['height']>=40
+            assert page.locator('.keymap-key').count()==26
+            assert page.locator('.step h2').all_text_contents()==['Start Shizuku, the helper app','Allow Hold Symbols','Turn it on and try it']
+            page.locator('[data-step-check="turn-on"]').check()
+            assert page.locator('#setup-progress').inner_text()=='1 of 3 steps complete'
+            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+            page.screenshot(path=str(output/f'hold-symbols-{label}.png'),full_page=True)
+            page.locator('#reset-progress').click()
             # Each guide keeps its own checklist.
             page.goto('http://127.0.0.1:8765/setup.html',wait_until='networkidle')
             assert page.locator('#setup-progress').inner_text()=='0 of 3 steps complete'
@@ -86,7 +115,8 @@ try:
             assert page.locator('[data-step-check="allow"]').is_checked()
             page.locator('#reset-progress').click()
             page.goto('http://127.0.0.1:8765/',wait_until='networkidle')
-            assert page.locator('[data-tool="scale-toggle"]').count()==1 and page.locator('.tool-row').count()==2
+            assert page.locator('[data-tool="scale-toggle"]').count()==1 and page.locator('[data-tool="hold-symbols"]').count()==1 and page.locator('.tool-row').count()==3
+            assert page.evaluate("[...document.querySelectorAll('.site-nav a')].every(a=>{const r=a.getBoundingClientRect();return r.width===0||r.right<=innerWidth+.5})"), f'{label}: header link off screen'
             for route in ('contribute.html','privacy.html'):
                 page.goto('http://127.0.0.1:8765/'+route,wait_until='networkidle')
                 assert page.locator('h1').is_visible()
@@ -109,9 +139,12 @@ try:
         page.goto('http://127.0.0.1:8765/scale-toggle.html')
         assert page.locator('.step').count()==3 and page.get_by_role('link',name='Download Scale Toggle',exact=True).count()==1
         assert page.locator('[data-scale-phone]').is_visible() and not page.get_by_role('button',name='Tablet mode').is_visible()
+        page.goto('http://127.0.0.1:8765/hold-symbols.html')
+        assert page.locator('.step').count()==3 and page.get_by_role('link',name='Download Hold Symbols',exact=True).count()==1
+        assert page.locator('[data-hold-phone]').is_visible() and not page.locator('#hold-press').is_visible()
         page.goto('http://127.0.0.1:8765/')
         assert page.locator('[data-phone]').is_visible() and not page.get_by_role('button',name='Bright room').is_visible()
         context.close();browser.close()
 finally:server.shutdown()
 (output/'results.json').write_text(json.dumps({'checks':results,'autoSwitch':'pass','noJavaScriptGuide':'pass'},indent=2))
-print(f'PASS: {len(viewports)} viewports incl. Titan 9:10, real navigation, room and Scale Toggle demos, auto-switch, checklist persistence/reset, no-JS pages.')
+print(f'PASS: {len(viewports)} viewports incl. Titan 9:10, real navigation, room, Scale Toggle and Hold Symbols demos, auto-switch, checklist persistence/reset, no-JS pages.')

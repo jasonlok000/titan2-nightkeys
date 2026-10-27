@@ -127,6 +127,183 @@ if (scalePhone) {
   }).observe(demo);
   schedule();
 }
+// Hold Symbols illustration: a quick press types the letter, holding past the app's
+// default 400 ms types the symbol printed on the key. Works with pointer, touch or keyboard.
+const holdPhone = document.querySelector('[data-hold-phone]');
+if (holdPhone) {
+  const demo = holdPhone.closest('.demo');
+  const typed = holdPhone.querySelector('.typed-text');
+  const caret = holdPhone.querySelector('.caret');
+  const bubble = holdPhone.querySelector('.hold-bubble');
+  const bubbleText = holdPhone.querySelector('.hold-bubble-text');
+  const status = document.querySelector('#hold-status');
+  const autoButton = document.querySelector('#hold-auto');
+  const clearButton = document.querySelector('#hold-clear');
+  const pressButton = document.querySelector('#hold-press');
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const HOLD_MS = 400;
+  const keys = {};
+  for (const key of holdPhone.querySelectorAll('.elite-key')) {
+    const name = key.dataset.key;
+    const alt = key.querySelector('.key-alt');
+    if (/^[A-Z]$/.test(name) && alt) keys[name] = { key, symbol: alt.textContent.replace('−', '-') };
+    else if (name === 'space') keys[' '] = { key };
+    else if (name === 'backspace') keys.Backspace = { key };
+  }
+  const nameOf = key => key.dataset.key === 'space' ? ' ' : key.dataset.key === 'backspace' ? 'Backspace' : key.dataset.key;
+  let text = typed.textContent;
+  let active = null;
+  let bubbleTimer;
+  function render() {
+    const shown = text.length > 24 ? '…' + text.slice(-23) : text;
+    typed.textContent = shown;
+    let width = 0;
+    try { width = shown ? typed.getComputedTextLength() : 0; } catch (_) { }
+    caret.setAttribute('x', (48 + width + (shown ? 1.5 : 0)).toFixed(1));
+  }
+  function showBubble(entry) {
+    const box = entry.key.querySelector('path').getBBox();
+    bubble.setAttribute('transform', `translate(${(box.x + box.width / 2).toFixed(1)} ${box.y.toFixed(1)})`);
+    bubbleText.textContent = entry.symbol;
+    clearTimeout(bubbleTimer);
+    holdPhone.dataset.bubble = 'true';
+  }
+  function press(name) {
+    const entry = keys[name];
+    if (!entry) return;
+    if (active) release(active.name);
+    entry.key.dataset.state = 'down';
+    if (name === 'S') pressButton.dataset.state = 'down';
+    active = { name, held: false, timer: 0 };
+    const current = active;
+    if (entry.symbol) current.timer = setTimeout(() => {
+      if (active !== current) return;
+      current.held = true;
+      entry.key.dataset.state = 'held';
+      if (name === 'S') pressButton.dataset.state = 'held';
+      text += entry.symbol;
+      render(); showBubble(entry);
+      status.textContent = `Held ${name} → ${entry.symbol}`;
+    }, HOLD_MS); // the hold time is the feature, not an animation: same with reduced motion
+  }
+  function release(name) {
+    if (!active || active.name !== name) return;
+    const entry = keys[name];
+    clearTimeout(active.timer);
+    if (!active.held) {
+      if (name === 'Backspace') text = text.slice(0, -1);
+      else text += name === ' ' ? ' ' : name.toLowerCase();
+      render();
+      status.textContent = name === ' ' ? 'Space' : name === 'Backspace' ? 'Backspace' : `Tapped ${name} → ${name.toLowerCase()}`;
+    }
+    delete entry.key.dataset.state;
+    delete pressButton.dataset.state;
+    active = null;
+    clearTimeout(bubbleTimer);
+    bubbleTimer = setTimeout(() => { holdPhone.dataset.bubble = 'false'; }, 450);
+  }
+  function cancel() {
+    if (!active) return;
+    clearTimeout(active.timer);
+    delete keys[active.name].key.dataset.state;
+    delete pressButton.dataset.state;
+    active = null;
+    holdPhone.dataset.bubble = 'false';
+  }
+  // Watch it type: plain taps, then held keys for "4:30!".
+  const script = [...'see you at '].map(c => [c === ' ' ? ' ' : c.toUpperCase(), false])
+    .concat([['S', true], ['H', true], ['R', true], ['Q', true], ['B', true]]);
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+  let autoOn = !reducedMotion.matches;
+  let visible = true;
+  let run = 0;
+  async function play(token) {
+    text = ''; render();
+    await wait(800);
+    for (const [name, hold] of script) {
+      if (token !== run) return;
+      press(name);
+      await wait(hold ? HOLD_MS + 320 : 120);
+      if (token !== run) return;
+      release(name);
+      await wait(hold ? 380 : 90);
+    }
+    await wait(2800);
+    if (token === run) play(token);
+  }
+  function setAuto(on) {
+    autoOn = on;
+    run++;
+    cancel();
+    autoButton.textContent = on ? 'Pause demo' : 'Play demo';
+    if (on && visible && !document.hidden) play(run);
+  }
+  holdPhone.addEventListener('pointerdown', event => {
+    const key = event.target.closest('.elite-key');
+    if (!key || !keys[nameOf(key)]) return;
+    event.preventDefault();
+    if (autoOn) setAuto(false);
+    press(nameOf(key));
+  });
+  const letGo = () => { if (active) release(active.name); };
+  holdPhone.addEventListener('pointerup', letGo);
+  holdPhone.addEventListener('pointerleave', letGo);
+  holdPhone.addEventListener('pointercancel', letGo);
+  holdPhone.addEventListener('contextmenu', event => event.preventDefault());
+  // A real keyboard works too, while the demo is on screen and nothing else has focus.
+  const typingTarget = el => el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+  const keyName = event => event.key === ' ' ? ' ' : event.key === 'Backspace' ? 'Backspace' : /^[a-z]$/i.test(event.key) ? event.key.toUpperCase() : null;
+  document.addEventListener('keydown', event => {
+    const name = keyName(event);
+    if (!name || !visible || event.ctrlKey || event.metaKey || event.altKey || typingTarget(document.activeElement)) return;
+    // Space still works buttons and links elsewhere; on the demo's own controls it types a space.
+    const focused = document.activeElement;
+    if (name === ' ' && focused && focused.closest('button,a,summary') && !demo.contains(focused)) return;
+    event.preventDefault();
+    if (event.repeat) return;
+    if (autoOn) setAuto(false);
+    press(name);
+  });
+  document.addEventListener('keyup', event => { const name = keyName(event); if (name) release(name); });
+  // The big button is the S key: press and hold it with a finger, mouse, Space or Enter.
+  pressButton.addEventListener('pointerdown', event => {
+    event.preventDefault();
+    if (autoOn) setAuto(false);
+    press('S');
+  });
+  pressButton.addEventListener('pointerup', letGo);
+  pressButton.addEventListener('pointerleave', letGo);
+  pressButton.addEventListener('pointercancel', letGo);
+  pressButton.addEventListener('contextmenu', event => event.preventDefault());
+  pressButton.addEventListener('keydown', event => {
+    if (event.key !== ' ' && event.key !== 'Enter') return;
+    event.preventDefault(); event.stopPropagation();
+    if (event.repeat) return;
+    if (autoOn) setAuto(false);
+    press('S');
+  });
+  pressButton.addEventListener('keyup', event => {
+    if (event.key === ' ' || event.key === 'Enter') { event.stopPropagation(); release('S'); }
+  });
+  pressButton.addEventListener('click', event => event.preventDefault());
+  autoButton.addEventListener('click', () => setAuto(!autoOn));
+  clearButton.addEventListener('click', () => {
+    if (autoOn) setAuto(false);
+    text = ''; render();
+    status.textContent = 'Tap a key for the letter. Hold it for the symbol.';
+  });
+  document.addEventListener('visibilitychange', () => { run++; cancel(); if (autoOn && visible && !document.hidden) play(run); });
+  if ('IntersectionObserver' in window) new IntersectionObserver(entries => {
+    const was = visible;
+    visible = entries[0].isIntersecting;
+    if (visible === was) return;
+    run++; cancel();
+    if (autoOn && visible && !document.hidden) play(run);
+  }).observe(demo);
+  autoButton.textContent = autoOn ? 'Pause demo' : 'Play demo';
+  render();
+  if (autoOn) play(run);
+}
 // Optional setup progress is stored only on this browser, never submitted.
 const checks = [...document.querySelectorAll('[data-step-check]')];
 if (checks.length) {

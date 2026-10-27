@@ -22,6 +22,18 @@
       "platform": "Titan 2 Elite / Android 16",
       "version": "1.0.4",
       "apk": "ScaleToggle-1.0.4.apk"
+    },
+    {
+      "id": "hold-symbols",
+      "name": "Hold Symbols",
+      "description": "Hold a letter key to type the symbol printed on it. Tap for the letter, hold for the symbol.",
+      "status": "available",
+      "releaseStage": "beta",
+      "source": "https://github.com/jasonlok000/titan2-nightkeys/releases/tag/holdsymbols-v0.3.1",
+      "guide": "hold-symbols.html",
+      "platform": "Titan 2 Elite / Android 16",
+      "version": "0.3.1",
+      "apk": "TitanHoldSymbols-0.3.1.apk"
     }
   ]
 }
