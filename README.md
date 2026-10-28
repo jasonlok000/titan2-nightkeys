@@ -53,6 +53,8 @@ The debug application ID ends in `.debug`; never run debug and release automatio
 
 The `site/` directory is **Titan Tools**: the public landing page, interactive light illustration, detailed guides, privacy information and contribution entry points. The catalogue is `site/data/tools.json`. Future tools can live in their own modules or repositories and appear here after review; they are not silently bundled with NightKeys. [Website development](docs/WEBSITE.md).
 
+**Scale Toggle** (phone/tablet layout on a long press of the side button) is published here as `scaletoggle-v*` releases. [Guide](https://jasonlok000.github.io/titan2-nightkeys/scale-toggle.html) · [Defaults and settings](docs/SCALE-TOGGLE.md).
+
 Help without coding: report a firmware result, improve a confusing instruction, translate a label, or suggest a narrowly scoped tool. [Start contributing](CONTRIBUTING.md).
 
 ## License and acknowledgements

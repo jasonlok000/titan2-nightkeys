@@ -75,6 +75,10 @@ try:
             sdemo.scroll_into_view_if_needed()
             assert sdemo.bounding_box()['height']<=h or w>760, f'{label}: scale demo taller than the screen'
             assert page.locator('.step h2').all_text_contents()==['Start Shizuku, the helper app','Allow Scale Toggle','Bind it to the side button']
+            # Optional DPI settings are documented, linked from the guide nav, and not a numbered step.
+            assert page.locator('#settings h2').inner_text()=='Optional: choose your own sizes'
+            assert page.locator('.guide-nav a[href="#settings"]').count()==1 and page.locator('#settings.step').count()==0
+            assert 'Tablet mode’s default' in page.locator('#settings').inner_text() and '300 DPI → about 574 dp: Phone mode’s default' in page.locator('#settings').inner_text()
             page.locator('[data-step-check="allow"]').check()
             assert page.locator('#setup-progress').inner_text()=='1 of 3 steps complete'
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
