@@ -34,6 +34,16 @@
       "platform": "Titan 2 Elite / Android 16",
       "version": "0.3.1",
       "apk": "TitanHoldSymbols-0.3.1.apk"
+    },
+    {
+      "id": "titankeys",
+      "name": "TitanKeys",
+      "description": "A keyboard made for the Titan 2 Elite: swipe on the physical keys, typos fixed as you go, 49 languages.",
+      "status": "available",
+      "releaseStage": "stable",
+      "source": "https://github.com/jasonlok000/titankeys",
+      "guide": "https://jasonlok000.github.io/titankeys/",
+      "platform": "Titan 2 Elite / Android 16"
     }
   ]
 }
