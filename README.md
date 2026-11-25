@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> **This project is obsolete.** NightKeys, Scale Toggle and Hold Symbols now live in **[TitanTools](https://github.com/jasonlok000/titantools)**. Get it here: **[everyones-niche.com/titankeys/#tools](https://everyones-niche.com/titankeys/#tools)**. This repository is archived and no longer updated.
+
 # NightKeys · Titan Tools
 
 **Your keyboard. Better after dark.**
