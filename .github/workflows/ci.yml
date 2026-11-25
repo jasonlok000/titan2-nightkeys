@@ -34,12 +34,12 @@ jobs:
           set -euo pipefail
           bash gradlew --no-daemon --console=plain :app:lintDebug :app:lintRelease :app:assembleDebug :app:assembleRelease :app:assembleDebugAndroidTest 2>&1 | tee build/evidence/android-build.log
           bash gradlew --no-daemon :app:dependencies --configuration releaseRuntimeClasspath > build/evidence/dependencies.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: android-build-${{ github.sha }}
           path: app/build/outputs/apk/
           retention-days: 14
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: android-build-evidence-${{ github.sha }}
@@ -74,7 +74,7 @@ jobs:
           emulator-boot-timeout: 300
           emulator-options: -no-window -no-snapshot -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: bash tools/emulator-test.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: android-runtime-evidence-${{ github.sha }}
@@ -92,7 +92,7 @@ jobs:
       - run: python3 -m pip install playwright==1.57.0
       - run: python3 -m playwright install --with-deps chromium
       - run: python3 tools/test-site.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: website-evidence-${{ github.sha }}
