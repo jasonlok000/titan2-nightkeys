@@ -48,5 +48,5 @@ for tool in catalog['tools']:
     if 'apk' in tool:
         guide=(site/tool['guide']).read_text(encoding='utf-8')
         assert tool['apk'] in guide and tool['version'] in tool['apk'],f"{tool['id']}: guide and catalogue disagree on {tool['apk']}"
-        assert tool['guide'] in (site/'index.html').read_text(encoding='utf-8'),f"{tool['id']}: not listed on the homepage"
+        assert tool['guide'] in (site/'nightkeys.html').read_text(encoding='utf-8'),f"{tool['id']}: not listed on the old catalogue page (the homepage now redirects to the TitanKeys site)"
 print(f'PASS: {len(pages)} static pages; internal links, anchors, catalogue, local scripts and release identity.')
